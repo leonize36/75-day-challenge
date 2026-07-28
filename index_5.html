@@ -1,0 +1,1972 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --canvas: #F4F5F7; --card: #FFFFFF; --line: #E4E7EC; --line-2: #CFD4DC;
+    --text: #14161A; --muted: #6E7480;
+    --brand: #0E7C7B; --brand-soft: #E4F1F1; --brand-mid: #8CBFBE;
+    --red: #C6564A; --red-soft: #FBECEA; --amber: #B4790C; --amber-soft: #FBF1DF;
+    --violet: #5B4B8A; --violet-soft: #EDEAF5;
+    --r: 18px; --shadow: 0 1px 2px rgba(20,22,26,.05), 0 6px 20px rgba(20,22,26,.05);
+  }
+  * { box-sizing: border-box; }
+  .app { background: var(--canvas); color: var(--text); font-family: "Inter", system-ui, sans-serif;
+    padding: 16px 16px 0; max-width: 760px; margin: 0 auto; min-height: 100%; -webkit-font-smoothing: antialiased; }
+  .app h1, .app h2, .app h3 { margin: 0; font-family: "Bricolage Grotesque", sans-serif; }
+
+  .topbar { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; }
+  .topbar .id { font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .topbar .track { flex: 1; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .topbar .fill { height: 100%; background: var(--brand); width: 0; transition: width 300ms ease; }
+
+  /* dashboard */
+  .dash { display: flex; align-items: center; gap: 18px; margin-bottom: 14px; }
+  .ring { position: relative; width: 118px; height: 118px; flex: 0 0 auto; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .bgc { stroke: var(--line); }
+  .ring .fgc { stroke: var(--brand); stroke-linecap: round; transition: stroke-dashoffset 500ms cubic-bezier(.2,.8,.3,1); }
+  .ring .mid { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+  .ring .mid b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 34px; letter-spacing: -.03em; line-height: 1; }
+  .ring .mid span { font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 3px; }
+  .dash .say { flex: 1; min-width: 0; }
+  .dash .say h1 { font-size: clamp(19px, 5.4vw, 25px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; }
+  .dash .say p { margin: 7px 0 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 14px; overflow: hidden; position: relative; box-shadow: var(--shadow); }
+  .card.warn { border-color: #EBD9B4; }
+  .card > .head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 15px 17px 13px; }
+  .card > .head h2 { font-weight: 700; font-size: 16.5px; letter-spacing: -.015em; }
+  .card > .head .meta { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); text-align: right; }
+
+  .chip { display: inline-flex; align-items: center; background: var(--brand-soft); color: var(--brand); border-radius: 999px; padding: 6px 12px; font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; }
+  .chip.amber { background: var(--amber-soft); color: var(--amber); }
+  .chip.red { background: var(--red-soft); color: var(--red); }
+  .chip.pop { animation: pop 420ms cubic-bezier(.2,1.4,.4,1); }
+  @keyframes pop { 0% { transform: scale(.7); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+
+  .row { display: flex; align-items: center; gap: 13px; width: 100%; padding: 14px 17px; border: 0; border-top: 1px solid var(--line); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background 150ms ease; }
+  .row:hover { background: #FAFBFC; }
+  .row:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+  .row[disabled] { cursor: default; opacity: .55; }
+  .row .txt { flex: 1; min-width: 0; }
+  .row .lab { font-weight: 600; font-size: 15px; letter-spacing: -.01em; }
+  .row .spec { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .row .mark { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--line-2); display: grid; place-items: center; transition: background 160ms ease, border-color 160ms ease; }
+  .row .mark svg { width: 15px; height: 15px; stroke: #fff; stroke-width: 3.2; fill: none; opacity: 0; transform: scale(.5); transition: opacity 160ms, transform 220ms cubic-bezier(.2,1.5,.4,1); }
+  .row.on .mark { background: var(--brand); border-color: var(--brand); }
+  .row.on .mark svg { opacity: 1; transform: scale(1); }
+  .row.on .lab { color: var(--muted); }
+  .row.auto .mark { border-style: dashed; }
+
+  .prog { display: flex; gap: 3px; margin-top: 7px; }
+  .prog span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); transition: background 180ms ease; }
+  .prog span.on { background: var(--brand); }
+  .stepper { display: flex; gap: 6px; flex: 0 0 auto; }
+  .stepper button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--card); color: var(--text); font-size: 16px; font-weight: 600; cursor: pointer; line-height: 1; }
+  .stepper button.plus { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .stepper button:disabled { opacity: .35; cursor: default; }
+  .amt { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); margin-top: 6px; display: block; }
+
+  /* generic sections */
+  .set { padding: 14px 17px; border-top: 1px solid var(--line); }
+  .set:first-child { border-top: 0; }
+  .set .t { font-weight: 600; font-size: 14.5px; }
+  .set .h { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .seg { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .seg button { font: inherit; font-size: 13px; font-weight: 500; padding: 8px 13px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--card); color: var(--muted); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); font-weight: 600; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .grid4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+  @media (min-width: 520px) { .grid4 { grid-template-columns: repeat(4, 1fr); } }
+  label.f { display: block; }
+  label.f span { font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  input.fld, select.fld, textarea.fld { font: inherit; font-size: 15px; width: 100%; margin-top: 5px; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 11px; background: var(--card); color: var(--text); }
+  input.fld:focus, select.fld:focus, textarea.fld:focus { outline: 2px solid var(--brand); outline-offset: 1px; border-color: var(--brand); }
+  input.code { font-family: "JetBrains Mono", monospace; letter-spacing: .3em; text-transform: uppercase; }
+  .codebox { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; background: var(--brand-soft); border-radius: 12px; padding: 12px 15px; }
+  .codebox b { font-family: "JetBrains Mono", monospace; font-size: 19px; letter-spacing: .26em; color: var(--brand); }
+
+  /* calendar */
+  .cal { padding: 6px 17px 16px; }
+  .cal .wk { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .cal .wk.hd span { font-family: "JetBrains Mono", monospace; font-size: 9.5px; color: var(--muted); text-align: center; padding-bottom: 6px; letter-spacing: .06em; }
+  .cell { aspect-ratio: 1; border-radius: 9px; border: 1px solid var(--line); background: var(--card); display: grid; place-content: center; font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); cursor: default; position: relative; }
+  .cell.out { border-color: transparent; background: transparent; color: transparent; }
+  .cell.perfect { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 500; }
+  .cell.part { background: var(--amber-soft); border-color: #EBD9B4; color: var(--amber); }
+  .cell.missed { background: var(--red-soft); border-color: #F0D3CF; color: var(--red); }
+  .cell.today { box-shadow: 0 0 0 2px var(--brand); }
+  .cal .mnav { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 12px; }
+  .cal .mnav b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 15px; }
+  .cal .mnav button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--card); cursor: pointer; color: var(--text); font-size: 14px; line-height: 1; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 0 17px 15px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+  /* bars / sparkline */
+  .bars { display: flex; align-items: flex-end; gap: 1.5px; height: 56px; padding: 0 17px; }
+  .bar { flex: 1 1 0; min-width: 0; position: relative; height: 100%; display: flex; align-items: flex-end; }
+  .bar i { display: block; width: 100%; border-radius: 2px 2px 0 0; height: 2px; background: var(--brand-mid); }
+  .bar.empty i { background: var(--line); }
+  .bar.miss i { background: var(--red); }
+  .bar.full i { background: var(--brand); }
+  .axis { display: flex; justify-content: space-between; padding: 13px 17px 15px; font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--muted); }
+
+  .dots { display: flex; gap: 4px; }
+  .dots i { width: 9px; height: 9px; border-radius: 2px; background: var(--line); }
+  .dots i.on { background: var(--brand); }
+  .dots i.off { background: var(--red); }
+
+  /* crew */
+  .mrow { display: flex; align-items: center; gap: 12px; padding: 13px 17px; border-top: 1px solid var(--line); }
+  .av { width: 36px; height: 36px; border-radius: 50%; flex: 0 0 auto; display: grid; place-items: center; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 14px; background: var(--brand-soft); color: var(--brand); }
+  .av.me { background: var(--brand); color: #fff; }
+  .mrow .who { flex: 1; min-width: 0; }
+  .mrow .nm { font-weight: 600; font-size: 14.5px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .mrow .nm em { font-style: normal; font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .mrow .dots { margin-top: 7px; }
+  .mrow .day { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 21px; letter-spacing: -.02em; flex: 0 0 auto; text-align: right; }
+  .mrow .day small { display: block; font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 400; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+  .pill { font: inherit; font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--card); color: var(--brand); cursor: pointer; flex: 0 0 auto; }
+  .pill:disabled { color: var(--muted); opacity: .5; cursor: default; }
+
+  /* stats + badges */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .stat { padding: 14px 8px 15px 17px; border-top: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .stat:last-child { border-right: 0; }
+  .stat .v { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 23px; letter-spacing: -.02em; }
+  .stat .k { font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
+  @media (max-width: 480px) { .stats { grid-template-columns: repeat(2, 1fr); } .stat:nth-child(2) { border-right: 0 } }
+
+  .badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(102px, 1fr)); gap: 9px; padding: 14px 17px 16px; }
+  .badge { border: 1px solid var(--line); border-radius: 13px; padding: 12px 10px; text-align: center; background: #FAFBFC; }
+  .badge.got { background: var(--violet-soft); border-color: #D8D1EC; }
+  .badge .ic { font-size: 22px; line-height: 1; filter: grayscale(1) opacity(.4); }
+  .badge.got .ic { filter: none; }
+  .badge .bn { font-weight: 600; font-size: 12px; margin-top: 7px; letter-spacing: -.01em; }
+  .badge .bd { font-size: 10.5px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+
+  /* photos */
+  .strip { display: flex; gap: 8px; overflow-x: auto; padding: 14px 17px 16px; }
+  .shot { flex: 0 0 auto; width: 78px; border-radius: 11px; overflow: hidden; border: 2px solid transparent; background: var(--line); cursor: pointer; position: relative; }
+  .shot.sel { border-color: var(--brand); }
+  .shot img { width: 100%; height: 104px; object-fit: cover; display: block; }
+  .shot b { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(20,22,26,.62); color: #fff; font-family: "JetBrains Mono", monospace; font-size: 9px; padding: 3px 0; text-align: center; font-weight: 400; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 17px 16px; }
+  .compare figure { margin: 0; }
+  .compare img { width: 100%; border-radius: 12px; display: block; }
+  .compare figcaption { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--muted); margin-top: 6px; text-align: center; }
+
+  /* coach */
+  .coach { padding: 4px 17px 16px; }
+  .coach .bubble { background: var(--violet-soft); border-radius: 14px; padding: 14px 15px; font-size: 13.5px; line-height: 1.55; color: #33294F; }
+  .coach .bubble.err { background: var(--red-soft); color: var(--red); }
+
+  .notice { padding: 4px 17px 18px; }
+  .notice h3 { font-weight: 700; font-size: 19px; letter-spacing: -.02em; }
+  .notice.bad h3 { color: var(--red); }
+  .notice p { margin: 8px 0 15px; font-size: 13.5px; line-height: 1.55; color: var(--muted); max-width: 46ch; }
+
+  button.act { font-family: "Inter", sans-serif; font-weight: 600; font-size: 13.5px; background: var(--brand); color: #fff; border: 0; border-radius: 999px; padding: 11px 20px; cursor: pointer; transition: filter 150ms, transform 150ms; }
+  button.act:hover { filter: brightness(1.1); }
+  button.act:active { transform: scale(.97); }
+  button.act:disabled { opacity: .4; cursor: default; }
+  button.act.ghost { background: var(--card); color: var(--muted); border: 1px solid var(--line-2); }
+  button.act.danger { background: var(--red-soft); color: var(--red); }
+  button.act.sm { padding: 9px 15px; font-size: 12.5px; margin-top: 10px; }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+  .lock { position: absolute; inset: 0; z-index: 3; background: rgba(255,255,255,.9); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 16px; }
+  .lock .notice { background: var(--red-soft); border-radius: 14px; padding: 16px; }
+
+  .tabs { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px;
+    background: rgba(244,245,247,.93); backdrop-filter: blur(8px); border-top: 1px solid var(--line); margin: 4px -16px 0; padding: 7px 8px 11px; }
+  .tabs button { font: inherit; font-size: 9px; font-weight: 600; letter-spacing: -.01em; position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; border: 0; border-radius: 11px; padding: 7px 2px; color: var(--muted); cursor: pointer; }
+  .tabs button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .tabs button[aria-current="true"] { color: var(--brand); background: var(--brand-soft); }
+  .tabs .badgeN { position: absolute; top: 3px; right: 50%; margin-right: -16px; min-width: 15px; height: 15px; border-radius: 8px; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; }
+
+  .toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%) translateY(12px); background: var(--text); color: #fff; border-radius: 999px; padding: 11px 16px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 14px; box-shadow: 0 8px 26px rgba(20,22,26,.28); opacity: 0; pointer-events: none; transition: opacity 180ms, transform 180ms; z-index: 20; max-width: 92vw; }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .toast button { font: inherit; font-weight: 600; color: #7FD4D3; background: none; border: 0; cursor: pointer; padding: 0; }
+  .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--line-2); border-top-color: var(--brand); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
+  @keyframes sp { to { transform: rotate(360deg) } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important } }
+</style>
+
+<script>
+/* Browser storage shim.
+   Inside a Claude artifact window.storage exists and is used as is.
+   On any real domain it does not, so this maps the same API onto localStorage. */
+window.__storageShim = false;
+if (!window.storage) {
+  window.__storageShim = true;
+  const ns = shared => (shared ? 's:' : 'p:');
+  window.storage = {
+    async get(key, shared) {
+      const v = localStorage.getItem(ns(shared) + key);
+      if (v === null) throw new Error('Key not found: ' + key);
+      return { key, value: v, shared: !!shared };
+    },
+    async set(key, value, shared) {
+      localStorage.setItem(ns(shared) + key, value);
+      return { key, value, shared: !!shared };
+    },
+    async delete(key, shared) {
+      localStorage.removeItem(ns(shared) + key);
+      return { key, deleted: true, shared: !!shared };
+    },
+    async list(prefix, shared) {
+      const p = ns(shared) + (prefix || ''), keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(p)) keys.push(k.slice(2));
+      }
+      return { keys, prefix: prefix || '', shared: !!shared };
+    }
+  };
+}
+</script>
+
+
+
+<div class="app" id="app">
+  <div class="topbar">
+    <span class="id" id="topId">Not started</span>
+    <span class="track"><span class="fill" id="topFill"></span></span>
+  </div>
+  <div id="view"></div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="today" aria-current="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19.5" cy="18" r="2"/></svg>Today</button>
+    <button data-tab="log"><svg viewBox="0 0 24 24"><path d="M6.5 4h11a1.5 1.5 0 0 1 1.5 1.5v13A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-13A1.5 1.5 0 0 1 6.5 4Z"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg>Log</button>
+    <button data-tab="progress"><svg viewBox="0 0 24 24"><path d="M4 19V9M9.5 19V5M15 19v-7M20.5 19v-4"/></svg>Progress</button>
+    <button data-tab="crew"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.3 2.7-5.4 6-5.4s6 2.1 6 5.4M16.5 5.2a3.4 3.4 0 0 1 0 6.6M18 14.9c2 .7 3.5 2.4 3.5 5.1"/></svg>Crew</button>
+    <button data-tab="inbox"><svg viewBox="0 0 24 24"><path d="M4 6.5h16v11H4z"/><path d="M4 7l8 6 8-6"/></svg>Inbox</button>
+    <button data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg>Settings</button>
+  </nav>
+</div>
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct">Undo</button></div>
+
+<script>
+/* ============================================================
+   75 tracker — data model
+   ============================================================ */
+const TOTAL = 75, KEY = 'sf:state', PKEY = d => `sf:photo:${d}`;
+
+const MODES = {
+  hard: { name: '75 Hard', water: 3800, sessions: 2, minutes: 45, outdoor: true, pages: 10,
+    photo: true, alcohol: false, fiction: false },
+  soft: { name: '75 Soft', water: 3000, sessions: 1, minutes: 45, outdoor: false, pages: 10,
+    photo: false, alcohol: true, fiction: true },
+  custom: { name: 'Custom', water: 3000, sessions: 1, minutes: 30, outdoor: false, pages: 10,
+    photo: true, alcohol: true, fiction: true }
+};
+
+let state = {
+  mode: 'hard', rules: null,
+  runStart: null, log: {}, books: [], resets: 0, longest: 0,
+  graceHours: 6, waterMode: 'rule', weightKg: null,
+  proteinTarget: 130, calorieTarget: 2000,
+  name: null, crew: null, coach: {}, seenBadges: []
+};
+
+let tab = 'today', broken = null, wasComplete = false;
+let crew = [], myNudges = [], photos = {}, undoSnap = null, toastTimer = null, installPrompt = null;
+let calMonth = null, cmp = [], coachBusy = false, reportText = null, reportBusy = false;
+
+/* ---------- dates ---------- */
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const fromIso = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (s,n) => { const d = fromIso(s); d.setDate(d.getDate()+n); return iso(d); };
+const between = (a,b) => Math.round((fromIso(b) - fromIso(a)) / 86400000);
+const today = () => iso(new Date());
+const pretty = s => fromIso(s).toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' });
+const shortD = s => fromIso(s).toLocaleDateString(undefined, { day:'numeric', month:'short' });
+const ago = ts => { const m = Math.floor((Date.now()-ts)/60000);
+  if (m < 2) return 'just now'; if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m/60); return h < 24 ? `${h} h ago` : `${Math.floor(h/24)} d ago`; };
+
+/* ---------- rules ---------- */
+function R() { return Object.assign({}, MODES[state.mode], state.mode === 'custom' ? (state.rules || {}) : {}); }
+function waterTarget() {
+  const r = R();
+  if (state.waterMode === 'weight' && state.weightKg) return Math.round(Math.max(2000, Math.min(5000, state.weightKg * 40)) / 250) * 250;
+  return r.water;
+}
+function tasks() {
+  const r = R(), t = [];
+  t.push({ id: 'diet', kind: 'bool', label: 'Diet', spec: r.alcohol ? 'Follow your plan. Alcohol only socially.' : 'No cheat meals. No alcohol.' });
+  t.push({ id: 'sessions', kind: 'sessions', label: r.sessions > 1 ? `${r.sessions} workouts` : 'Workout',
+    spec: `${r.sessions} × ${r.minutes} min or more.` });
+  if (r.outdoor) t.push({ id: 'outdoor', kind: 'outdoor', label: 'One outdoors', spec: 'One session must be outside.' });
+  t.push({ id: 'water', kind: 'water', label: 'Water', spec: '' });
+  t.push({ id: 'read', kind: 'pages', label: 'Read', spec: `${r.pages} pages${r.fiction ? '' : ', non-fiction'}.` });
+  if (r.photo) t.push({ id: 'photo', kind: 'photo', label: 'Progress photo', spec: 'One shot, every day.' });
+  return t;
+}
+
+/* ---------- day accessors ---------- */
+const D = d => state.log[d] || {};
+const put = (d, patch) => { state.log[d] = Object.assign({}, state.log[d], patch); dirty.add(d); };
+const waterMl = d => { const x = D(d); return typeof x.waterMl === 'number' ? x.waterMl : (x.water ? waterTarget() : 0); };
+const sessions = d => D(d).sessions || [];
+const pagesRead = d => (D(d).reads || []).reduce((a, r) => a + (r.pages || 0), 0);
+const hasPhoto = d => !!D(d).photo || !!D(d).photoManual;
+
+function isDone(d, t) {
+  const r = R();
+  switch (t.kind) {
+    case 'water': return waterMl(d) >= waterTarget();
+    case 'sessions': return sessions(d).filter(s => s.minutes >= r.minutes).length >= r.sessions;
+    case 'outdoor': return sessions(d).some(s => s.outdoor && s.minutes >= r.minutes);
+    case 'pages': return pagesRead(d) >= r.pages;
+    case 'photo': return hasPhoto(d);
+    default: return !!D(d)[t.id];
+  }
+}
+const countDone = d => tasks().filter(t => isDone(d, t)).length;
+const complete = d => countDone(d) === tasks().length;
+const dayOf = d => state.runStart ? between(state.runStart, d) + 1 : null;
+const slug = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) || 'me';
+
+const inGrace = () => state.graceHours > 0 && new Date().getHours() < state.graceHours;
+function graceDate() {
+  if (!state.runStart || !inGrace()) return null;
+  const y = addDays(today(), -1);
+  if (between(state.runStart, y) < 0 || complete(y)) return null;
+  return y;
+}
+const cutoff = () => inGrace() ? addDays(today(), -1) : today();
+
+/* ---------- storage ---------- */
+const S = {
+  async get(k, sh) { try { const r = await window.storage.get(k, !!sh); return r ? JSON.parse(r.value) : null; } catch (e) { return null; } },
+  async raw(k) { try { const r = await window.storage.get(k); return r ? r.value : null; } catch (e) { return null; } },
+  async set(k, v, sh) { try { await window.storage.set(k, JSON.stringify(v), !!sh); return true; } catch (e) { return false; } },
+  async setRaw(k, v) { try { await window.storage.set(k, v); return true; } catch (e) { return false; } },
+  async del(k, sh) { try { await window.storage.delete(k, !!sh); } catch (e) {} },
+  async keys(p, sh) { try { const r = await window.storage.list(p, !!sh);
+    return (r && r.keys ? r.keys : []).map(k => typeof k === 'string' ? k : k.key).filter(Boolean); } catch (e) { return []; } }
+};
+/* ============================================================
+   CLOUD SYNC — Supabase over REST. No SDK, no CDN dependency.
+   Offline stays authoritative: every change writes locally
+   first, then pushes. A failed push never loses a check.
+   ============================================================ */
+/* Project defaults. Both values are client-side keys and are meant to be
+   public: row-level security decides what they can reach. Never put a
+   service_role key here. Editable in Settings if the project moves. */
+const DEFAULT_URL = 'https://secaphxpqlbjrutopfph.supabase.co';
+const DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlY2FwaHhwcWxianJ1dG9wZnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMzMwMzksImV4cCI6MjEwMDgwOTAzOX0.wDQVX01WHha3bViuDobzemL8xrU4d_HUmIkUacxI780';
+
+let cloud = { url: DEFAULT_URL, key: DEFAULT_KEY, token: null, refresh: null, uid: null, email: null, crewId: null };
+let dirty = new Set(), booksDirty = false, pushTimer = null, syncState = 'off', syncMsg = '';
+
+const cloudOn = () => !!(cloud.url && cloud.key && cloud.token && cloud.uid);
+const CKEY = 'sf:cloud';
+
+async function loadCloudCfg() {
+  const c = await S.get(CKEY);
+  if (c) cloud = Object.assign(cloud, c);
+  if (!cloud.url) cloud.url = DEFAULT_URL;
+  if (!cloud.key) cloud.key = DEFAULT_KEY;
+}
+async function saveCloudCfg() { await S.set(CKEY, cloud); }
+
+function apiHeaders(json) {
+  const h = { apikey: cloud.key, Authorization: `Bearer ${cloud.token}` };
+  if (json) { h['Content-Type'] = 'application/json'; }
+  return h;
+}
+
+async function rest(path, opts = {}, retry = true) {
+  const res = await fetch(`${cloud.url}/rest/v1/${path}`, {
+    method: opts.method || 'GET',
+    headers: Object.assign(apiHeaders(true), opts.headers || {}),
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if (res.status === 401 && retry && cloud.refresh) {
+    const ok = await refreshToken();
+    if (ok) return rest(path, opts, false);
+  }
+  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+async function refreshToken() {
+  try {
+    const res = await fetch(`${cloud.url}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST', headers: { apikey: cloud.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: cloud.refresh })
+    });
+    if (!res.ok) return false;
+    const d = await res.json();
+    cloud.token = d.access_token; cloud.refresh = d.refresh_token;
+    await saveCloudCfg();
+    return true;
+  } catch (e) { return false; }
+}
+
+async function auth(kind, url, key, email, password, name) {
+  const base = url.replace(/\/+$/, '');
+  const ep = kind === 'up' ? '/auth/v1/signup' : '/auth/v1/token?grant_type=password';
+  const body = kind === 'up'
+    ? { email, password, data: { display_name: name || email.split('@')[0] } }
+    : { email, password };
+  const res = await fetch(base + ep, {
+    method: 'POST', headers: { apikey: key, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.msg || d.error_description || d.message || 'Sign in failed');
+  if (!d.access_token) throw new Error('Check your email to confirm the account, then sign in.');
+  cloud = { url: base, key, token: d.access_token, refresh: d.refresh_token,
+    uid: d.user.id, email: d.user.email, crewId: null };
+  await saveCloudCfg();
+  return true;
+}
+
+async function signOut() {
+  cloud = { url: cloud.url, key: cloud.key, token: null, refresh: null, uid: null, email: null, crewId: null };
+  await saveCloudCfg();
+  syncState = 'off'; syncMsg = '';
+  crew = []; myNudges = [];
+}
+
+/* ---------- pull ---------- */
+async function pull() {
+  syncState = 'busy'; syncMsg = 'Loading from Supabase'; render();
+  try {
+    const [prof] = await rest(`profiles?id=eq.${cloud.uid}&select=*`);
+    if (prof) {
+      state.mode = prof.mode || 'hard';
+      state.rules = prof.rules || null;
+      state.graceHours = prof.grace_hours;
+      state.waterMode = prof.water_mode;
+      state.weightKg = prof.weight_kg ? +prof.weight_kg : null;
+      state.proteinTarget = prof.protein_target;
+      state.calorieTarget = prof.calorie_target;
+      state.runStart = prof.run_start;
+      state.resets = prof.resets;
+      state.longest = prof.longest;
+      state.name = prof.display_name;
+    }
+    const [days, works, books, reads, mine] = await Promise.all([
+      rest(`days?user_id=eq.${cloud.uid}&select=*`),
+      rest(`workouts?user_id=eq.${cloud.uid}&select=*`),
+      rest(`books?user_id=eq.${cloud.uid}&select=*&order=created_at`),
+      rest(`reads?user_id=eq.${cloud.uid}&select=*`),
+      rest('rpc/my_crew', { method: 'POST', body: {} })
+    ]);
+    state.books = (books || []).map(b => ({ id: b.id, title: b.title, pages: b.total_pages, read: 0 }));
+    const byId = {}; state.books.forEach((b, i) => byId[b.id] = i);
+    state.log = {};
+    (days || []).forEach(d => {
+      state.log[d.day] = { diet: d.diet, waterMl: d.water_ml, protein: d.protein_g,
+        calories: d.calories, mood: d.mood || undefined, weightKg: d.weight_kg ? +d.weight_kg : undefined,
+        meas: d.measurements || {}, photo: d.has_photo, sessions: [], reads: [] };
+    });
+    (works || []).forEach(w => {
+      state.log[w.day] = state.log[w.day] || { sessions: [], reads: [] };
+      (state.log[w.day].sessions = state.log[w.day].sessions || []).push({ name: w.name, minutes: w.minutes, outdoor: w.outdoor });
+    });
+    (reads || []).forEach(r => {
+      state.log[r.day] = state.log[r.day] || { sessions: [], reads: [] };
+      const bi = r.book_id != null && byId[r.book_id] != null ? byId[r.book_id] : -1;
+      (state.log[r.day].reads = state.log[r.day].reads || []).push({ book: bi, pages: r.pages });
+      if (bi >= 0) state.books[bi].read += r.pages;
+    });
+    const row = Array.isArray(mine) ? mine[0] : mine;
+    if (row && row.crew_id) {
+      cloud.crewId = row.crew_id; state.crew = row.crew_code; state.pendingCrew = null;
+      await saveCloudCfg();
+    } else {
+      cloud.crewId = null; state.crew = null;
+      if (state.pendingCrew) { const code = state.pendingCrew; state.pendingCrew = null; await joinCrew(code); }
+    }
+    dirty = new Set(); booksDirty = false;
+    await S.set(KEY, state);
+    syncState = 'ok'; syncMsg = 'Synced';
+  } catch (e) {
+    syncState = 'err'; syncMsg = 'Could not load. Working from this device.';
+  }
+  render();
+}
+
+/* ---------- push ---------- */
+function schedulePush() {
+  if (!cloudOn()) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(push, 700);
+}
+
+async function push() {
+  if (!cloudOn()) return;
+  syncState = 'busy'; syncMsg = 'Saving';
+  const dates = Array.from(dirty);
+  try {
+    await rest('profiles?on_conflict=id', {
+      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: [{ id: cloud.uid, display_name: state.name || 'You', mode: state.mode,
+        rules: state.mode === 'custom' ? (state.rules || null) : null,
+        grace_hours: state.graceHours, water_mode: state.waterMode,
+        weight_kg: state.weightKg, protein_target: state.proteinTarget,
+        calorie_target: state.calorieTarget, run_start: state.runStart,
+        resets: state.resets, longest: state.longest, updated_at: new Date().toISOString() }]
+    });
+
+    if (booksDirty) {
+      for (const b of state.books || []) {
+        if (b.id) {
+          await rest(`books?id=eq.${b.id}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' },
+            body: { title: b.title, total_pages: b.pages || 0 } });
+        } else {
+          const [row] = await rest('books', { method: 'POST', headers: { Prefer: 'return=representation' },
+            body: [{ user_id: cloud.uid, title: b.title, total_pages: b.pages || 0 }] });
+          if (row) b.id = row.id;
+        }
+      }
+      booksDirty = false;
+    }
+
+    for (const d of dates) {
+      const x = D(d);
+      await rest('days?on_conflict=user_id,day', {
+        method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: [{ user_id: cloud.uid, day: d, diet: !!x.diet, water_ml: x.waterMl || 0,
+          protein_g: x.protein || 0, calories: x.calories || 0, mood: x.mood || null,
+          weight_kg: x.weightKg || null, measurements: x.meas || {}, has_photo: !!x.photo,
+          updated_at: new Date().toISOString() }]
+      });
+      await rest(`workouts?user_id=eq.${cloud.uid}&day=eq.${d}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
+      const ws = (x.sessions || []).map(s => ({ user_id: cloud.uid, day: d, name: s.name || null, minutes: s.minutes, outdoor: !!s.outdoor }));
+      if (ws.length) await rest('workouts', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: ws });
+
+      await rest(`reads?user_id=eq.${cloud.uid}&day=eq.${d}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
+      const rs = (x.reads || []).map(r => ({ user_id: cloud.uid, day: d,
+        book_id: r.book >= 0 && state.books[r.book] ? state.books[r.book].id : null, pages: r.pages }));
+      if (rs.length) await rest('reads', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: rs });
+      dirty.delete(d);
+    }
+    await publish();
+    syncState = 'ok'; syncMsg = 'Synced';
+  } catch (e) {
+    syncState = 'err'; syncMsg = 'Saved on this device. Will retry.';
+  }
+  if (tab === 'settings') render();
+}
+
+/* ---------- photos ---------- */
+async function savePhoto(date, dataUrl) {
+  await S.setRaw(PKEY(date), dataUrl);
+  photos[date] = dataUrl;
+  if (!cloudOn()) return true;
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    await fetch(`${cloud.url}/storage/v1/object/progress/${cloud.uid}/${date}.jpg`, {
+      method: 'POST', headers: Object.assign(apiHeaders(false), { 'x-upsert': 'true', 'Content-Type': 'image/jpeg' }), body: blob
+    });
+  } catch (e) { /* local copy stands */ }
+  return true;
+}
+
+async function pullPhotos() {
+  if (!cloudOn()) return;
+  try {
+    const list = await fetch(`${cloud.url}/storage/v1/object/list/progress`, {
+      method: 'POST', headers: apiHeaders(true),
+      body: JSON.stringify({ prefix: cloud.uid + '/', limit: 200, sortBy: { column: 'name', order: 'asc' } })
+    }).then(r => r.json());
+    for (const o of (list || [])) {
+      const date = String(o.name).replace('.jpg', '');
+      if (photos[date]) continue;
+      const signed = await fetch(`${cloud.url}/storage/v1/object/sign/progress/${cloud.uid}/${o.name}`, {
+        method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ expiresIn: 3600 })
+      }).then(r => r.json());
+      if (signed && signed.signedURL) photos[date] = cloud.url + '/storage/v1' + signed.signedURL;
+    }
+  } catch (e) { /* offline, local photos still show */ }
+}
+
+async function load() { const s = await S.get(KEY); if (s) state = Object.assign(state, s); }
+async function save() {
+  await S.set(KEY, state);
+  if (cloudOn()) schedulePush(); else publish();
+}
+
+/* ---------- run integrity ---------- */
+function audit() {
+  broken = null;
+  if (!state.runStart) return;
+  const c = cutoff();
+  for (let i = 0; i < TOTAL; i++) {
+    const d = addDays(state.runStart, i);
+    if (between(d, c) <= 0) break;
+    if (!complete(d)) { broken = { date: d, day: i+1, missed: tasks().filter(t => !isDone(d, t)) }; return; }
+  }
+}
+function startRun(from) { state.runStart = from; state.log = {}; reportText = null; save(); render(); }
+function resetRun(reached) {
+  undoSnap = JSON.parse(JSON.stringify(state));
+  state.longest = Math.max(state.longest || 0, reached || 0);
+  state.resets = (state.resets || 0) + 1;
+  wasComplete = false;
+  startRun(today());
+  toast(`Back to day 1. Day ${reached} logged as a restart.`);
+}
+
+/* ---------- crew ---------- */
+/* ---------- crew: cloud path and local path ---------- */
+const mKey = (c, s) => `sqd:${c}:m:${s}`;
+const nKey = (c, s, ts) => `sqd:${c}:n:${s}:${ts}`;
+const NUDGES = ['is checking on your day', 'says finish the outdoor one', 'wants your six', 'is watching the streak'];
+const makeCode = () => Array.from({ length: 5 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');
+
+async function publish() {
+  const t = today(), n = dayOf(t), ts = tasks();
+  const st = statsAll();
+  const card = {
+    name: state.name, mode: R().name,
+    streak: currentStreak(), perfect: st.perfect, minutes: st.minutes,
+    pages: st.pages, outdoor: st.outdoor, runStart: state.runStart,
+    day: state.runStart ? Math.min(n || 0, TOTAL) : 0,
+    checks: state.runStart ? ts.map(x => isDone(t, x)) : ts.map(() => false),
+    done: state.runStart ? countDone(t) : 0, of: ts.length,
+    broken: !!broken, best: state.longest || 0, resets: state.resets || 0,
+    started: !!state.runStart, updated: Date.now()
+  };
+  if (cloudOn() && cloud.crewId) {
+    try {
+      await rest('crew_status?on_conflict=user_id,crew_id', {
+        method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: [{ user_id: cloud.uid, crew_id: cloud.crewId, display_name: card.name || 'You',
+          mode: card.mode, day_number: card.day, checks: card.checks, done: card.done,
+          of_total: card.of, broken: card.broken, started: card.started,
+          best: card.best, resets: card.resets, streak: card.streak,
+          perfect_days: card.perfect, total_minutes: card.minutes,
+          total_pages: card.pages, outdoor_count: card.outdoor,
+          run_start: card.runStart, updated_at: new Date().toISOString() }]
+      });
+    } catch (e) { /* retried on next push */ }
+    return;
+  }
+  if (state.crew && state.name) await S.set(mKey(state.crew, slug(state.name)), card, true);
+}
+
+async function loadCrew() {
+  crew = []; myNudges = [];
+  if (cloudOn()) {
+    if (!cloud.crewId) return;
+    try {
+      const rows = await rest(`crew_status?crew_id=eq.${cloud.crewId}&select=*`);
+      crew = (rows || []).map(r => ({ uid: r.user_id, name: r.display_name, mode: r.mode,
+        day: r.day_number, checks: r.checks || [], done: r.done, of: r.of_total,
+        broken: r.broken, started: r.started, best: r.best, resets: r.resets,
+        updated: new Date(r.updated_at).getTime() }))
+        .sort((a, b) => b.day - a.day || a.name.localeCompare(b.name));
+      const nd = await rest(`nudges?to_user=eq.${cloud.uid}&read_at=is.null&select=*&order=created_at.desc&limit=5`);
+      myNudges = (nd || []).map(x => ({ id: x.id, v: { from: x.from_name, text: x.body, ts: new Date(x.created_at).getTime() } }));
+    } catch (e) { /* keep whatever is on screen */ }
+    return;
+  }
+  if (!state.crew) return;
+  const keys = await S.keys(`sqd:${state.crew}:m:`, true);
+  crew = (await Promise.all(keys.map(k => S.get(k, true)))).filter(Boolean)
+    .sort((a, b) => b.day - a.day || a.name.localeCompare(b.name));
+  const nk = await S.keys(`sqd:${state.crew}:n:${slug(state.name)}:`, true);
+  myNudges = (await Promise.all(nk.map(async k => ({ k, v: await S.get(k, true) }))))
+    .filter(x => x.v).sort((a, b) => b.v.ts - a.v.ts).slice(0, 5);
+}
+
+async function nudge(m) {
+  const name = m.name;
+  if (cloudOn() && cloud.crewId && m.uid) {
+    try {
+      await rest('nudges', { method: 'POST', headers: { Prefer: 'return=minimal' },
+        body: [{ crew_id: cloud.crewId, from_user: cloud.uid, to_user: m.uid,
+          from_name: state.name || 'Someone', body: NUDGES[Date.now() % NUDGES.length] }] });
+      toast(`Nudge sent to ${name.split(' ')[0]}.`, false);
+    } catch (e) { toast('Nudge failed to send.', false); }
+    return;
+  }
+  const ts = Date.now();
+  await S.set(nKey(state.crew, slug(name), ts), { from: state.name, text: NUDGES[ts % NUDGES.length], ts }, true);
+  toast(`Nudge sent to ${name.split(' ')[0]}.`, false);
+}
+
+async function clearNudges() {
+  if (cloudOn()) {
+    try { for (const x of myNudges) await rest(`nudges?id=eq.${x.id}`, { method: 'PATCH',
+      headers: { Prefer: 'return=minimal' }, body: { read_at: new Date().toISOString() } }); } catch (e) {}
+  } else {
+    await Promise.all(myNudges.map(x => S.del(x.k, true)));
+  }
+  myNudges = []; render();
+}
+
+async function createCrew() {
+  if (!cloudOn()) { toast('Connect to Supabase under Settings first. A crew needs an account on both sides.', false); return false; }
+  try {
+    const rows = await rest('rpc/create_crew', { method: 'POST', body: { crew_name: (state.name || 'My') + ' crew' } });
+    const row = Array.isArray(rows) ? rows[0] : rows;
+    if (!row || !row.crew_id) throw new Error('Supabase returned no crew. Run the crew patch SQL.');
+    cloud.crewId = row.crew_id; state.crew = row.crew_code; state.pendingCrew = null;
+    await saveCloudCfg(); await save(); await publish(); await loadCrew();
+    toast(`Crew ${row.crew_code} created.`, false);
+    return true;
+  } catch (e) { toast(e.message.slice(0, 120), false); return false; }
+}
+
+async function joinCrew(code) {
+  code = (code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length !== 5) { toast('A crew code is 5 characters.', false); return false; }
+  if (!cloudOn()) {
+    state.pendingCrew = code; await save();
+    toast('Saved. Sign in under Settings and the code is applied automatically.', false);
+    return false;
+  }
+  try {
+    const rows = await rest('rpc/join_crew', { method: 'POST', body: { join_code: code } });
+    const row = Array.isArray(rows) ? rows[0] : rows;
+    if (!row || !row.crew_id) throw new Error('No crew with that code.');
+    cloud.crewId = row.crew_id; state.crew = row.crew_code; state.pendingCrew = null;
+    await saveCloudCfg(); await save(); await publish(); await loadCrew();
+    toast(`Joined crew ${row.crew_code}.`, false);
+    return true;
+  } catch (e) {
+    const m = /No crew with code|5 characters|Not signed in/.test(e.message)
+      ? e.message.replace(/^.*?(No crew with code|A crew code|Not signed in)/, '$1').split('"')[0]
+      : 'Could not join. Check the code, and that the crew patch SQL has been run.';
+    toast(m.slice(0, 120), false);
+    return false;
+  }
+}
+
+async function leaveCrew() {
+  if (cloudOn() && cloud.crewId) {
+    try { await rest('rpc/leave_crew', { method: 'POST', body: {} }); } catch (e) {}
+    cloud.crewId = null; await saveCloudCfg();
+  }
+  state.crew = null; state.pendingCrew = null; crew = []; myNudges = [];
+  await save(); render();
+}
+
+/* ---------- photos ---------- */
+async function loadPhotos() {
+  photos = {};
+  const keys = await S.keys('sf:photo:');
+  for (const k of keys) { const v = await S.raw(k); if (v) photos[k.replace('sf:photo:', '')] = v; }
+}
+function pickPhoto(date) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0];
+    if (!f) return;
+    const img = new Image(), fr = new FileReader();
+    fr.onload = () => { img.onload = async () => {
+      const max = 520, sc = Math.min(1, max / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      const data = cv.toDataURL('image/jpeg', 0.72);
+      const ok = await savePhoto(date, data);
+      if (!ok) return toast('Photo too large to save.', false);
+      put(date, { photo: true });
+      await save(); render();
+    }; img.src = fr.result; };
+    fr.readAsDataURL(f);
+  };
+  inp.click();
+}
+
+/* ---------- badges ---------- */
+const BADGES = [
+  { id: 'day1',   ic: '🚦', n: 'Off the line',  d: 'Clear day 1',            f: s => s.perfect >= 1 },
+  { id: 'wk1',    ic: '🔥', n: 'One week',      d: '7 perfect days',         f: s => s.perfect >= 7 },
+  { id: 'wk2',    ic: '⚡', n: 'Fortnight',     d: '14 perfect days',        f: s => s.perfect >= 14 },
+  { id: 'd30',    ic: '🏔️', n: 'Thirty',        d: '30 perfect days',        f: s => s.perfect >= 30 },
+  { id: 'd50',    ic: '🚀', n: 'Fifty',         d: '50 perfect days',        f: s => s.perfect >= 50 },
+  { id: 'd75',    ic: '🏆', n: 'Finisher',      d: 'All 75 days',            f: s => s.perfect >= 75 },
+  { id: 'hydro',  ic: '💧', n: 'Hydrated',      d: 'Hit water 14 days',      f: s => s.waterDays >= 14 },
+  { id: 'out20',  ic: '🌦️', n: 'All weather',   d: '20 outdoor sessions',    f: s => s.outdoor >= 20 },
+  { id: 'book',   ic: '📚', n: 'Finished a book', d: 'Complete one book',    f: s => s.booksDone >= 1 },
+  { id: 'lens',   ic: '📸', n: 'Documented',    d: '30 progress photos',     f: s => s.photoDays >= 30 },
+  { id: 'iron',   ic: '🏋️', n: 'Volume',        d: '3,000 workout minutes',  f: s => s.minutes >= 3000 },
+  { id: 'honest', ic: '🧱', n: 'Started again', d: 'Log a restart honestly', f: s => s.resets >= 1 }
+];
+function statsAll() {
+  const out = { perfect: 0, waterDays: 0, outdoor: 0, minutes: 0, photoDays: 0,
+    resets: state.resets || 0, booksDone: (state.books || []).filter(b => b.read >= b.pages && b.pages > 0).length,
+    protein: 0, calories: 0, pages: 0 };
+  Object.keys(state.log).forEach(d => {
+    if (complete(d)) out.perfect++;
+    if (waterMl(d) >= waterTarget()) out.waterDays++;
+    sessions(d).forEach(s => { out.minutes += s.minutes || 0; if (s.outdoor) out.outdoor++; });
+    if (hasPhoto(d)) out.photoDays++;
+    out.pages += pagesRead(d);
+  });
+  return out;
+}
+const earned = () => { const s = statsAll(); return BADGES.filter(b => b.f(s)).map(b => b.id); };
+
+/* ---------- streaks and week ---------- */
+function currentStreak() {
+  if (!state.runStart) return 0;
+  let n = 0, d = complete(today()) ? today() : addDays(today(), -1);
+  while (state.log[d] && complete(d) && between(state.runStart, d) >= 0) { n++; d = addDays(d, -1); }
+  return n;
+}
+function weekStats() {
+  const rows = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = addDays(today(), -i);
+    rows.push({ d, done: countDone(d), of: tasks().length, water: waterMl(d),
+      protein: D(d).protein || 0, calories: D(d).calories || 0,
+      minutes: sessions(d).reduce((a, s) => a + (s.minutes||0), 0), pages: pagesRead(d),
+      mood: D(d).mood || null, weight: D(d).weightKg || null });
+  }
+  return rows;
+}
+
+/* ---------- AI coach ---------- */
+async function ask(prompt, system) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000,
+      messages: [{ role: 'user', content: (system ? system + '\n\n' : '') + prompt }] })
+  });
+  const data = await res.json();
+  return (data.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n').trim();
+}
+function contextBlob() {
+  const t = today(), n = dayOf(t), r = R(), w = weekStats();
+  const open = tasks().filter(x => !isDone(t, x)).map(x => x.label);
+  return `Mode: ${r.name}. Day ${n || 0} of 75. Current streak ${currentStreak()} days. Restarts so far ${state.resets||0}.
+Today ${countDone(t)} of ${tasks().length} checks done. Still open: ${open.join(', ') || 'nothing'}.
+Water today ${(waterMl(t)/1000).toFixed(1)} of ${(waterTarget()/1000).toFixed(1)} L.
+Last 7 days, checks completed per day: ${w.map(x => x.done + '/' + x.of).join(', ')}.
+Workout minutes per day: ${w.map(x => x.minutes).join(', ')}. Pages per day: ${w.map(x => x.pages).join(', ')}.
+Protein grams per day: ${w.map(x => x.protein).join(', ')} against a ${state.proteinTarget} g target.`;
+}
+const COACH_SYS = `You are a blunt, warm accountability coach inside a 75-day challenge app. Reply in at most 3 short sentences. Name the single biggest gap in the data and one concrete action for the next few hours. No lists, no emoji, no praise padding, no motivational cliches. Never give medical advice.`;
+async function runCoach() {
+  coachBusy = true; render();
+  try { const text = await ask(contextBlob(), COACH_SYS);
+    state.coach = { date: today(), text }; await save(); }
+  catch (e) { state.coach = { date: today(), text: null, err: 'Coach unavailable right now. Your log is unaffected.' }; }
+  coachBusy = false; render();
+}
+const REPORT_SYS = `You write a weekly review inside a 75-day challenge app. Use 4 to 6 short sentences of plain prose. Lead with the strongest pattern in the numbers, name the weakest check, then one adjustment for next week. Quote specific figures from the data. No lists, no emoji, no medical advice.`;
+async function runReport() {
+  reportBusy = true; render();
+  try { reportText = await ask(contextBlob(), REPORT_SYS); }
+  catch (e) { reportText = 'Report unavailable right now.'; }
+  reportBusy = false; render();
+}
+
+/* ---------- toast ---------- */
+function toast(msg, undoable = true) {
+  const el = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastAct').style.display = undoable && undoSnap ? '' : 'none';
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('on'); undoSnap = null; }, 6000);
+}
+document.getElementById('toastAct').onclick = () => {
+  if (!undoSnap) return;
+  state = undoSnap; undoSnap = null;
+  document.getElementById('toast').classList.remove('on');
+  save(); render();
+};
+
+/* ============================================================
+   SOCIAL — inbox, member profiles, shared posts, messages
+   ============================================================ */
+let inbox = [], inboxUnread = 0, viewUid = null, memberData = null, feed = [], postBusy = false;
+
+async function loadInbox() {
+  if (!cloudOn() || !cloud.crewId) { inbox = []; inboxUnread = 0; return; }
+  try {
+    const rows = await rest('rpc/inbox', { method: 'POST', body: {} });
+    inbox = (rows || []).map(r => ({ id: r.id, kind: r.kind, uid: r.from_user,
+      from: r.from_name, body: r.body, ts: new Date(r.created_at).getTime(), read: !!r.read_at }));
+    inboxUnread = inbox.filter(x => !x.read).length;
+    myNudges = inbox.filter(x => x.kind === 'nudge' && !x.read)
+      .slice(0, 5).map(x => ({ id: x.id, v: { from: x.from, text: x.body, ts: x.ts } }));
+  } catch (e) { /* keep what is on screen */ }
+}
+
+async function markInboxRead() {
+  if (!cloudOn()) return;
+  try { await rest('rpc/mark_inbox_read', { method: 'POST', body: {} }); } catch (e) {}
+  inbox = inbox.map(x => Object.assign({}, x, { read: true }));
+  inboxUnread = 0; myNudges = [];
+  render();
+}
+
+async function loadFeed(uid) {
+  feed = [];
+  if (!cloudOn() || !cloud.crewId) return;
+  const q = uid ? `&user_id=eq.${uid}` : '';
+  try {
+    const rows = await rest(`crew_posts?crew_id=eq.${cloud.crewId}${q}&select=*&order=created_at.desc&limit=40`);
+    for (const p of (rows || [])) {
+      let url = null;
+      if (p.photo_path) {
+        try {
+          const s = await fetch(`${cloud.url}/storage/v1/object/sign/crew-shares/${p.photo_path}`, {
+            method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ expiresIn: 3600 })
+          }).then(r => r.json());
+          if (s && s.signedURL) url = cloud.url + '/storage/v1' + s.signedURL;
+        } catch (e) {}
+      }
+      feed.push({ id: p.id, uid: p.user_id, name: p.author_name, kind: p.kind,
+        caption: p.caption, url, ts: new Date(p.created_at).getTime() });
+    }
+  } catch (e) {}
+}
+
+async function sharePost(kind, caption, dataUrl) {
+  if (!cloudOn() || !cloud.crewId) { toast('Join a crew first.', false); return false; }
+  postBusy = true; render();
+  let path = null;
+  try {
+    if (dataUrl) {
+      path = `${cloud.crewId}/${cloud.uid}/${Date.now()}.jpg`;
+      const blob = await (await fetch(dataUrl)).blob();
+      const r = await fetch(`${cloud.url}/storage/v1/object/crew-shares/${path}`, {
+        method: 'POST', headers: Object.assign(apiHeaders(false), { 'Content-Type': 'image/jpeg' }), body: blob
+      });
+      if (!r.ok) throw new Error('Upload failed');
+    }
+    await rest('crew_posts', { method: 'POST', headers: { Prefer: 'return=minimal' },
+      body: [{ crew_id: cloud.crewId, user_id: cloud.uid, author_name: state.name || 'You',
+        kind, caption: caption || null, photo_path: path }] });
+    await loadFeed(viewUid);
+    toast('Shared with your crew.', false);
+  } catch (e) { toast('Could not share that.', false); }
+  postBusy = false; render();
+  return true;
+}
+
+async function deletePost(id) {
+  try { await rest(`crew_posts?id=eq.${id}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } }); } catch (e) {}
+  await loadFeed(viewUid); render();
+}
+
+async function loadMember(uid) {
+  memberData = { uid, books: [], thread: [], status: null };
+  if (!cloudOn() || !cloud.crewId) return;
+  try {
+    const [st] = await rest(`crew_status?crew_id=eq.${cloud.crewId}&user_id=eq.${uid}&select=*`);
+    memberData.status = st || null;
+    const books = await rest('rpc/crew_books', { method: 'POST', body: { c: cloud.crewId } });
+    memberData.books = (books || []).filter(b => b.user_id === uid);
+    const msgs = await rest(`crew_messages?crew_id=eq.${cloud.crewId}&or=(and(from_user.eq.${cloud.uid},to_user.eq.${uid}),and(from_user.eq.${uid},to_user.eq.${cloud.uid}))&select=*&order=created_at.desc&limit=50`);
+    memberData.thread = (msgs || []).reverse().map(m => ({ id: m.id, mine: m.from_user === cloud.uid,
+      from: m.from_name, body: m.body, ts: new Date(m.created_at).getTime() }));
+  } catch (e) {}
+  await loadFeed(uid);
+}
+
+async function sendMessage(toUid, body) {
+  if (!body.trim()) return;
+  try {
+    await rest('crew_messages', { method: 'POST', headers: { Prefer: 'return=minimal' },
+      body: [{ crew_id: cloud.crewId, from_user: cloud.uid, to_user: toUid || null,
+        from_name: state.name || 'You', body: body.trim() }] });
+    if (viewUid) await loadMember(viewUid);
+    render();
+  } catch (e) { toast('Message did not send.', false); }
+}
+
+function openMember(uid) {
+  viewUid = uid; memberData = null; tab = 'member'; render();
+  loadMember(uid).then(render);
+}
+
+/* ---------- pages ---------- */
+function pgInbox() {
+  const out = [];
+  if (!cloudOn() || !state.crew) {
+    out.push(el(`<div class="card"><div class="head"><h2>Inbox</h2></div>
+      <div class="set"><div class="h">Nudges and messages arrive here once you are signed in and in a crew.</div></div></div>`));
+    return out;
+  }
+  const c = el(`<div class="card"><div class="head"><h2>Inbox</h2>
+    <span class="meta">${inboxUnread ? inboxUnread + ' unread' : 'All read'}</span></div></div>`);
+  if (!inbox.length) {
+    c.appendChild(el(`<div class="set"><div class="h">Nothing yet. Nudges and messages from your crew land here.</div></div>`));
+  }
+  inbox.forEach(x => {
+    const label = x.kind === 'nudge' ? `${x.from.split(' ')[0]} ${x.body}`
+      : x.kind === 'broadcast' ? `${x.from.split(' ')[0]} to the crew` : `${x.from.split(' ')[0]}`;
+    const row = el(`<div class="mrow" style="${x.read ? 'opacity:.62' : ''}">
+      <span class="av">${esc(x.from.slice(0,1).toUpperCase())}</span>
+      <span class="who"><span class="nm">${esc(label)}${x.read ? '' : ' <em style="color:var(--brand)">new</em>'}</span>
+      <span class="amt">${x.kind === 'nudge' ? '' : esc(x.body.slice(0, 90)) + ' · '}${ago(x.ts)}</span></span>
+      <button class="pill">Open</button></div>`);
+    row.querySelector('button').onclick = () => openMember(x.uid);
+    c.appendChild(row);
+  });
+  if (inbox.length) {
+    const f = el(`<div class="set"><div class="btnrow">
+      <button class="act sm ghost" id="mr">Mark all read</button>
+      <button class="act sm ghost" id="rf">Refresh</button></div></div>`);
+    f.querySelector('#mr').onclick = markInboxRead;
+    f.querySelector('#rf').onclick = async () => { await loadInbox(); render(); };
+    c.appendChild(f);
+  }
+  out.push(c);
+
+  const bc = el(`<div class="card"><div class="head"><h2>Message the crew</h2></div>
+    <div class="set"><textarea class="fld" id="bm" rows="2" placeholder="Say something to everyone"></textarea>
+    <div class="btnrow"><button class="act sm" id="bs">Send to crew</button></div></div></div>`);
+  bc.querySelector('#bs').onclick = async () => {
+    const v = bc.querySelector('#bm').value;
+    if (!v.trim()) return;
+    await sendMessage(null, v);
+    bc.querySelector('#bm').value = '';
+    toast('Sent to the crew.', false);
+  };
+  out.push(bc);
+  return out;
+}
+
+function pgMember() {
+  const out = [];
+  const back = el(`<div class="btnrow" style="margin:0 0 12px"><button class="act sm ghost">Back to crew</button></div>`);
+  back.querySelector('button').onclick = () => { tab = 'crew'; viewUid = null; memberData = null; render(); };
+  out.push(back);
+
+  if (!memberData) { out.push(el(`<div class="card"><div class="set"><div class="h"><span class="spin"></span> Loading.</div></div></div>`)); return out; }
+  const st = memberData.status;
+  const nm = st ? st.display_name : 'Member';
+  const me = viewUid === cloud.uid;
+
+  const head = el(`<div class="card"><div class="head"><h2>${esc(nm)}</h2>
+    <span class="meta">${st ? esc(st.mode) : ''}</span></div>
+    <div class="stats">
+      <div class="stat"><div class="v">${st ? st.day_number : 0}</div><div class="k">Day</div></div>
+      <div class="stat"><div class="v">${st ? st.streak : 0}</div><div class="k">Streak</div></div>
+      <div class="stat"><div class="v">${st ? st.perfect_days : 0}</div><div class="k">Perfect</div></div>
+      <div class="stat"><div class="v">${st ? st.resets : 0}</div><div class="k">Restarts</div></div>
+      <div class="stat"><div class="v">${st ? st.total_minutes : 0}</div><div class="k">Workout min</div></div>
+      <div class="stat"><div class="v">${st ? st.outdoor_count : 0}</div><div class="k">Outdoor</div></div>
+      <div class="stat"><div class="v">${st ? st.total_pages : 0}</div><div class="k">Pages</div></div>
+      <div class="stat"><div class="v">${st ? st.done + '/' + st.of_total : '0'}</div><div class="k">Today</div></div>
+    </div>
+    ${st && st.broken ? '<div class="set"><div class="h" style="color:var(--red)">Restarting after a broken run.</div></div>' : ''}
+    ${st && st.run_start ? `<div class="set"><div class="h">Started ${pretty(st.run_start)}.</div></div>` : ''}</div>`);
+  out.push(head);
+
+  const bk = el(`<div class="card"><div class="head"><h2>Reading</h2>
+    <span class="meta">${memberData.books.length} ${memberData.books.length === 1 ? 'book' : 'books'}</span></div></div>`);
+  if (!memberData.books.length) bk.appendChild(el(`<div class="set"><div class="h">No books shared. Book sharing can be switched off in Settings, so an empty list may be a choice rather than an absence.</div></div>`));
+  memberData.books.forEach(b => {
+    const pct = b.total_pages ? Math.min(100, Math.round(b.pages_read / b.total_pages * 100)) : 0;
+    bk.appendChild(el(`<div class="set"><div class="t">${esc(b.title)}${pct >= 100 ? ' 📚' : ''}</div>
+      <div class="h">${b.pages_read} of ${b.total_pages} pages · ${pct}%</div>
+      <div class="prog">${Array.from({length:20},(_,k)=>`<span class="${k < Math.round(pct/5)?'on':''}"></span>`).join('')}</div></div>`));
+  });
+  out.push(bk);
+
+  const ph = el(`<div class="card"><div class="head"><h2>Shared photos</h2>
+    <span class="meta">${feed.length} ${feed.length === 1 ? 'post' : 'posts'}</span></div></div>`);
+  if (!feed.length) ph.appendChild(el(`<div class="set"><div class="h">Nothing shared yet. Progress photos stay private and never appear here. Only posts made from the Crew tab are visible.</div></div>`));
+  feed.forEach(p => {
+    const row = el(`<div class="set">
+      <div class="t">${esc(p.name.split(' ')[0])} · ${esc(p.kind)}</div>
+      <div class="h">${esc(p.caption || '')}${p.caption ? ' · ' : ''}${ago(p.ts)}</div>
+      ${p.url ? `<img src="${p.url}" alt="Shared ${esc(p.kind)}" style="width:100%;border-radius:12px;margin-top:9px;display:block">` : ''}
+      ${p.uid === cloud.uid ? '<div class="btnrow"><button class="act sm ghost">Delete</button></div>' : ''}</div>`);
+    const d = row.querySelector('button');
+    if (d) d.onclick = () => deletePost(p.id);
+    ph.appendChild(row);
+  });
+  out.push(ph);
+
+  if (!me) {
+    const th = el(`<div class="card"><div class="head"><h2>Messages</h2>
+      <span class="meta">${esc(nm.split(' ')[0])}</span></div></div>`);
+    if (!memberData.thread.length) th.appendChild(el(`<div class="set"><div class="h">No messages yet.</div></div>`));
+    memberData.thread.forEach(m => th.appendChild(el(`<div class="set" style="border-top:1px solid var(--line)">
+      <div class="coach" style="padding:0"><div class="bubble" style="${m.mine ? 'background:var(--brand-soft);color:#0B3B3A' : ''}">${esc(m.body)}</div></div>
+      <div class="amt">${m.mine ? 'You' : esc(m.from.split(' ')[0])} · ${ago(m.ts)}</div></div>`)));
+    const f = el(`<div class="set"><textarea class="fld" id="mb" rows="2" placeholder="Write a message"></textarea>
+      <div class="btnrow"><button class="act sm" id="ms">Send</button>
+      <button class="act sm ghost" id="mn">Nudge instead</button></div></div>`);
+    f.querySelector('#ms').onclick = async () => {
+      const v = f.querySelector('#mb').value;
+      if (!v.trim()) return;
+      await sendMessage(viewUid, v);
+      toast('Message sent.', false);
+    };
+    f.querySelector('#mn').onclick = () => nudge({ name: nm, uid: viewUid });
+    th.appendChild(f);
+    out.push(th);
+  }
+  return out;
+}
+
+function shareCard() {
+  let pending = null, kind = 'meal';
+  const c = el(`<div class="card"><div class="head"><h2>Share with your crew</h2>
+    <span class="meta">${postBusy ? 'Posting' : 'Visible to members only'}</span></div>
+    <div class="set">
+      <div class="h">A meal, a workout, or a note. This is separate from your progress photos, which stay private to you.</div>
+      <div class="seg" id="kd">
+        <button type="button" data-k="meal" aria-pressed="true">Meal</button>
+        <button type="button" data-k="workout" aria-pressed="false">Workout</button>
+        <button type="button" data-k="progress" aria-pressed="false">Progress</button>
+        <button type="button" data-k="note" aria-pressed="false">Note</button>
+      </div>
+      <input class="fld" id="cp" placeholder="Caption, optional" style="margin-top:10px">
+      <div class="btnrow"><button class="act sm ghost" id="pk">Choose photo</button>
+      <button class="act sm" id="sp">Share</button></div>
+      <div class="h" id="st" style="margin-top:9px"></div>
+    </div></div>`);
+  c.querySelectorAll('#kd button').forEach(b => b.onclick = () => {
+    kind = b.dataset.k;
+    c.querySelectorAll('#kd button').forEach(x => x.setAttribute('aria-pressed', x.dataset.k === kind));
+  });
+  c.querySelector('#pk').onclick = () => {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = () => {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      const img = new Image(), fr = new FileReader();
+      fr.onload = () => { img.onload = () => {
+        const max = 720, sc = Math.min(1, max / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        pending = cv.toDataURL('image/jpeg', 0.72);
+        c.querySelector('#st').textContent = 'Photo ready. Add a caption and tap Share.';
+      }; img.src = fr.result; };
+      fr.readAsDataURL(f);
+    };
+    inp.click();
+  };
+  c.querySelector('#sp').onclick = async () => {
+    const cap = c.querySelector('#cp').value.trim();
+    if (!pending && !cap) { c.querySelector('#st').textContent = 'Add a photo or a caption first.'; return; }
+    await sharePost(kind, cap, pending);
+  };
+  return c;
+}
+
+/* ============================================================
+   render
+   ============================================================ */
+const el = h => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstElementChild; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+function render() {
+  audit();
+  const t = today(), n = dayOf(t);
+  const fin = n !== null && n > TOTAL, cur = fin ? TOTAL : n;
+  document.getElementById('topId').textContent = !state.runStart ? R().name + ' · not started'
+    : broken ? 'Run broken' : fin ? 'Complete' : `${R().name} · day ${cur}`;
+  document.getElementById('topFill').style.width = state.runStart ? `${Math.min(100, (cur/TOTAL)*100)}%` : '0%';
+
+  const v = document.getElementById('view');
+  v.innerHTML = '';
+  if (tab === 'today') v.append(...pgToday(t, n, fin));
+  if (tab === 'log') v.append(...pgLog(t));
+  if (tab === 'progress') v.append(...pgProgress(t, n, fin));
+  if (tab === 'crew') v.append(...pgCrew());
+  if (tab === 'inbox') v.append(...pgInbox());
+  if (tab === 'member') v.append(...pgMember());
+  if (tab === 'settings') v.append(...pgSettings());
+
+  document.querySelectorAll('.tabs button').forEach(b => {
+    b.setAttribute('aria-current', (b.dataset.tab === tab || (tab === 'member' && b.dataset.tab === 'crew')) ? 'true' : 'false');
+    const o = b.querySelector('.badgeN'); if (o) o.remove();
+    if (b.dataset.tab === 'inbox' && inboxUnread) b.appendChild(el(`<span class="badgeN">${inboxUnread}</span>`));
+  });
+  window.scrollTo({ top: 0 });
+}
+
+/* ---------- shared pieces ---------- */
+function ringEl(done, of, n) {
+  const pct = of ? done / of : 0, C = 2 * Math.PI * 52;
+  return el(`<div class="ring">
+    <svg width="118" height="118" viewBox="0 0 118 118">
+      <circle class="bgc" cx="59" cy="59" r="52" fill="none" stroke-width="9"/>
+      <circle class="fgc" cx="59" cy="59" r="52" fill="none" stroke-width="9"
+        stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-pct)).toFixed(1)}"/>
+    </svg>
+    <div class="mid"><b>${n === null ? '—' : String(n).padStart(2,'0')}</b><span>${done} of ${of}</span></div></div>`);
+}
+function motivate(n, done, of, streak) {
+  if (!state.runStart) return { h: 'Nothing logged yet', p: 'Pick a mode in Settings, then start day 1.' };
+  if (broken) return { h: 'The run ended', p: 'Acknowledge the break below and day 1 starts again today.' };
+  if (n > TOTAL) return { h: '75 for 75', p: 'Every check, every day. Start another run whenever you want.' };
+  if (done === of) return { h: `Day ${n} is closed`, p: streak > 1 ? `${streak} clean days in a row.` : 'First one down.' };
+  const left = of - done;
+  const pctThrough = Math.round((n / TOTAL) * 100);
+  if (n <= 3) return { h: `Day ${n}, ${left} to go today`, p: 'The first week is the whole fight. Clear today and nothing else matters yet.' };
+  if (left === 1) return { h: 'One check left', p: 'Finish it and the day is banked.' };
+  return { h: `Day ${n}, ${left} left today`, p: `${pctThrough}% through the run. Streak at ${streak}.` };
+}
+
+/* ---------- Today ---------- */
+function pgToday(t, n, fin) {
+  const out = [];
+  if (!state.name) { out.push(setupCard()); return out; }
+
+  const ts = tasks(), done = state.runStart ? countDone(t) : 0;
+  const m = motivate(n, done, ts.length, currentStreak());
+  const dash = el(`<div class="dash"></div>`);
+  dash.appendChild(ringEl(done, ts.length, state.runStart ? (fin ? TOTAL : n) : null));
+  dash.appendChild(el(`<div class="say"><h1>${esc(m.h)}</h1><p>${esc(m.p)}</p></div>`));
+  out.push(dash);
+
+  if (!state.runStart) {
+    const c = el(`<div class="card"><div class="head"><h2>${esc(R().name)}</h2><span class="meta">${ts.length} checks a day</span></div>
+      <div class="notice"><h3>${ts.length} checks, 75 days, no gaps</h3>
+      <p>Miss one check on one day and the run returns to day 1. A day stays editable for ${state.graceHours} hours past midnight.</p>
+      <button class="act">Start day 1 today</button></div></div>`);
+    c.querySelector('button').onclick = () => startRun(today());
+    out.push(c);
+    return out;
+  }
+
+  if (fin) {
+    const c = el(`<div class="card"><div class="head"><h2>Run complete</h2><span class="meta">${pretty(t)}</span></div>
+      <div class="notice"><h3>Finished</h3><p>Started ${pretty(state.runStart)}. ${statsAll().perfect} perfect days.</p>
+      <button class="act">Run it again from today</button></div></div>`);
+    c.querySelector('button').onclick = () => resetRun(TOTAL);
+    out.push(c);
+    out.push(badgeCard());
+    return out;
+  }
+
+  if (myNudges.length) {
+    const c = el(`<div class="card"><div class="head"><h2>From your crew</h2><button class="pill">Clear</button></div></div>`);
+    myNudges.forEach(x => c.appendChild(el(`<div class="mrow"><span class="av">${esc(x.v.from.slice(0,1).toUpperCase())}</span>
+      <span class="who"><span class="nm">${esc(x.v.from.split(' ')[0])} ${esc(x.v.text)}</span>
+      <span class="amt">${ago(x.v.ts)}</span></span></div>`)));
+    c.querySelector('.pill').onclick = clearNudges;
+    out.push(c);
+  }
+
+  const g = graceDate();
+  if (g && !broken) out.push(dayCard(g, dayOf(g), `Yesterday, open until ${('0'+state.graceHours+':00').slice(-5)}`, true));
+  out.push(dayCard(t, n, pretty(t), false));
+
+  if (broken) {
+    const lock = el(`<div class="lock"><div class="notice bad"><h3>Run broken on day ${broken.day}</h3>
+      <p>${pretty(broken.date)} closed with ${broken.missed.length} unlogged: ${broken.missed.map(x => x.label.toLowerCase()).join(', ')}. Day 1 starts again today.</p>
+      <button class="act">Start over at day 1</button></div></div>`);
+    lock.querySelector('button').onclick = () => resetRun(broken.day);
+    out[out.length-1].appendChild(lock);
+  }
+
+  out.push(coachCard());
+  return out;
+}
+
+function dayCard(date, n, metaText, isGrace) {
+  const ts = tasks(), done = countDone(date);
+  const card = el(`<div class="card ${isGrace ? 'warn' : ''}">
+    <div class="head"><h2>${isGrace ? `Day ${n} carry-over` : `Day ${n}`}</h2><span class="meta">${esc(metaText)}</span></div></div>`);
+  if (done === ts.length) {
+    card.querySelector('.head').lastElementChild.outerHTML =
+      `<span class="chip ${isGrace ? 'amber' : ''} ${wasComplete || isGrace ? '' : 'pop'}">Day cleared</span>`;
+    if (!isGrace) wasComplete = true;
+  } else if (!isGrace) wasComplete = false;
+
+  ts.forEach(task => {
+    if (task.kind === 'water') { card.appendChild(waterRow(date)); return; }
+    const on = isDone(date, task);
+    const auto = task.kind !== 'bool' && task.kind !== 'photo';
+    const b = document.createElement('button');
+    b.className = 'row' + (on ? ' on' : '') + (auto ? ' auto' : '');
+    b.type = 'button';
+    b.innerHTML = `<span class="txt"><span class="lab">${task.label}</span><span class="spec">${esc(subSpec(date, task))}</span></span>
+      <span class="mark"><svg viewBox="0 0 24 24"><path d="M4.5 12.5 L9.5 17.5 L19.5 6.5"/></svg></span>`;
+    b.onclick = () => {
+      if (task.kind === 'bool') { put(date, { [task.id]: !D(date)[task.id] }); save(); render(); }
+      else if (task.kind === 'photo') pickPhoto(date);
+      else { tab = 'log'; render(); }
+    };
+    card.appendChild(b);
+  });
+  return card;
+}
+function subSpec(date, task) {
+  const r = R();
+  if (task.kind === 'sessions') {
+    const qual = sessions(date).filter(s => s.minutes >= r.minutes).length;
+    return `${qual} of ${r.sessions} sessions of ${r.minutes} min or more. Tap to log.`;
+  }
+  if (task.kind === 'outdoor') {
+    const has = sessions(date).some(s => s.outdoor && s.minutes >= r.minutes);
+    return has ? 'Outdoor session logged.' : 'No outdoor session yet. Tap to log.';
+  }
+  if (task.kind === 'pages') return `${pagesRead(date)} of ${r.pages} pages. Tap to log.`;
+  if (task.kind === 'photo') return hasPhoto(date) ? 'Photo saved.' : 'Tap to add a photo.';
+  return task.spec;
+}
+function waterRow(date) {
+  const target = waterTarget(), ml = waterMl(date);
+  const step = 250, slots = Math.ceil(target / step), filled = Math.round(ml / step);
+  const row = el(`<div class="row" style="cursor:default">
+    <div class="txt"><span class="lab">Water</span>
+      <div class="prog">${Array.from({length: slots}, (_,i) => `<span class="${i<filled?'on':''}"></span>`).join('')}</div>
+      <span class="amt">${(ml/1000).toFixed(2)} of ${(target/1000).toFixed(2)} L${state.waterMode==='weight'&&state.weightKg?` · 40 ml per kg at ${state.weightKg} kg`:''}</span></div>
+    <div class="stepper"><button type="button" id="m">&minus;</button><button type="button" class="plus" id="p">+</button></div></div>`);
+  const mb = row.querySelector('#m'), pb = row.querySelector('#p');
+  mb.disabled = ml <= 0; pb.disabled = ml >= target;
+  mb.onclick = () => { put(date, { waterMl: Math.max(0, ml - step) }); save(); render(); };
+  pb.onclick = () => { put(date, { waterMl: Math.min(target, ml + step) }); save(); render(); };
+  return row;
+}
+
+function coachCard() {
+  const c = el(`<div class="card"><div class="head"><h2>Coach</h2>
+    <span class="meta">${state.coach && state.coach.date === today() ? 'Today' : 'Not checked in'}</span></div>
+    <div class="coach"></div></div>`);
+  const body = c.querySelector('.coach');
+  if (coachBusy) body.appendChild(el(`<div class="bubble"><span class="spin"></span> Reading your last seven days.</div>`));
+  else if (state.coach && state.coach.date === today() && state.coach.text)
+    body.appendChild(el(`<div class="bubble">${esc(state.coach.text)}</div>`));
+  else if (state.coach && state.coach.err)
+    body.appendChild(el(`<div class="bubble err">${esc(state.coach.err)}</div>`));
+  else body.appendChild(el(`<div class="bubble">Ask for a check-in when you are behind. The coach reads your streak, your open checks, and the last seven days of numbers.</div>`));
+  const b = el(`<button class="act sm ghost">${state.coach && state.coach.date === today() ? 'Check in again' : 'Ask the coach'}</button>`);
+  b.disabled = coachBusy;
+  b.onclick = runCoach;
+  body.appendChild(b);
+  return c;
+}
+
+function setupCard() {
+  const c = el(`<div class="card"><div class="head"><h2>Set up</h2></div>
+    <div class="set"><div class="t">Your name</div><div class="h">Shown to your crew.</div>
+      <input class="fld" id="nm" placeholder="Your name" autocomplete="off"></div>
+    <div class="set"><div class="t">Body weight</div><div class="h">Optional. Used only to scale the water target at 40 ml per kilogram.</div>
+      <input class="fld" id="wt" type="number" inputmode="decimal" placeholder="kg"></div>
+    <div class="set"><div class="t">Mode</div>
+      <div class="seg" id="md">${Object.keys(MODES).map(k => `<button type="button" data-m="${k}" aria-pressed="${state.mode===k}">${MODES[k].name}</button>`).join('')}</div></div>
+    <div class="set"><div class="t">Crew</div><div class="h">Create a crew and share the code, or enter one you were given.</div>
+      <input class="fld code" id="cd" placeholder="CODE" maxlength="5" autocomplete="off">
+      <div class="btnrow"><button class="act" id="join">Join crew</button>
+      <button class="act ghost" id="create">Create a crew</button>
+      <button class="act ghost" id="solo">Run alone</button></div></div></div>`);
+  c.querySelectorAll('#md button').forEach(b => b.onclick = () => {
+    state.mode = b.dataset.m;
+    c.querySelectorAll('#md button').forEach(x => x.setAttribute('aria-pressed', x.dataset.m === state.mode));
+  });
+  const nm = c.querySelector('#nm'), cd = c.querySelector('#cd'), wt = c.querySelector('#wt');
+  const grab = () => {
+    if (!nm.value.trim()) { nm.focus(); toast('Enter your name first.', false); return false; }
+    state.name = nm.value.trim();
+    const w = parseFloat(wt.value);
+    if (w > 25 && w < 300) { state.weightKg = Math.round(w * 10) / 10; state.waterMode = 'weight'; }
+    return true;
+  };
+  c.querySelector('#join').onclick = async () => {
+    if (!grab()) return;
+    const code = cd.value.trim().toUpperCase();
+    await save();
+    await joinCrew(code);
+    render();
+  };
+  c.querySelector('#create').onclick = async () => { if (!grab()) return; await save(); await createCrew(); tab = 'crew'; render(); };
+  c.querySelector('#solo').onclick = async () => { if (!grab()) return; state.crew = null; await save(); render(); };
+  return c;
+}
+
+/* ---------- Log tab ---------- */
+function pgLog(t) {
+  const out = [], r = R();
+  if (!state.name) { out.push(setupCard()); return out; }
+  const target = graceDate() && !complete(graceDate()) ? graceDate() : t;
+  const isY = target !== t;
+
+  out.push(el(`<div class="card"><div class="head"><h2>Logging for</h2>
+    <span class="meta">${isY ? 'Yesterday · ' : ''}${pretty(target)}</span></div>
+    <div class="set"><div class="h">${isY ? 'The grace window is open, so entries land on yesterday until it closes.' : 'Everything here counts toward today.'}</div></div></div>`));
+
+  /* fuel */
+  const d = D(target);
+  const fuel = el(`<div class="card"><div class="head"><h2>Fuel</h2>
+    <span class="meta">${d.protein||0} g · ${d.calories||0} kcal</span></div>
+    <div class="set">
+      <div class="t">Protein and calories</div>
+      <div class="h">Targets are ${state.proteinTarget} g protein and ${state.calorieTarget} kcal. Neither is a rule of the challenge, so they do not gate the day.</div>
+      <div class="prog">${Array.from({length:10},(_,i)=>`<span class="${i < Math.round(Math.min(1,(d.protein||0)/state.proteinTarget)*10)?'on':''}"></span>`).join('')}</div>
+      <div class="grid2">
+        <label class="f"><span>Protein g</span><input class="fld" id="pr" type="number" inputmode="numeric" value="${d.protein||''}" placeholder="0"></label>
+        <label class="f"><span>Calories</span><input class="fld" id="cl" type="number" inputmode="numeric" value="${d.calories||''}" placeholder="0"></label>
+      </div>
+      <div class="btnrow"><button class="act sm" id="sv">Save fuel</button>
+      <button class="act sm ghost" id="p25">+25 g protein</button></div>
+    </div></div>`);
+  fuel.querySelector('#sv').onclick = () => {
+    put(target, { protein: +fuel.querySelector('#pr').value || 0, calories: +fuel.querySelector('#cl').value || 0 });
+    save(); render(); toast('Fuel saved.', false);
+  };
+  fuel.querySelector('#p25').onclick = () => { put(target, { protein: (D(target).protein||0) + 25 }); save(); render(); };
+  out.push(fuel);
+
+  /* workouts */
+  const list = sessions(target);
+  const wk = el(`<div class="card"><div class="head"><h2>Workouts</h2>
+    <span class="meta">${list.filter(s=>s.minutes>=r.minutes).length} of ${r.sessions} qualifying</span></div></div>`);
+  if (!list.length) wk.appendChild(el(`<div class="set"><div class="h">Nothing logged for ${shortD(target)} yet. A session counts toward the rule at ${r.minutes} minutes or more.</div></div>`));
+  list.forEach((s, i) => {
+    const row = el(`<div class="mrow"><span class="av">${s.outdoor ? '🌤' : '🏋'}</span>
+      <span class="who"><span class="nm">${esc(s.name || (s.outdoor ? 'Outdoor session' : 'Gym session'))}
+      ${s.minutes < r.minutes ? '<em>short of ' + r.minutes + ' min</em>' : ''}</span>
+      <span class="amt">${s.minutes} min · ${s.outdoor ? 'outdoors' : 'indoors'}</span></span>
+      <button class="pill">Remove</button></div>`);
+    row.querySelector('button').onclick = () => {
+      const arr = sessions(target).slice(); arr.splice(i, 1);
+      put(target, { sessions: arr }); save(); render();
+    };
+    wk.appendChild(row);
+  });
+  const wf = el(`<div class="set">
+    <div class="t">Add a session</div>
+    <div class="grid2">
+      <label class="f"><span>What</span><input class="fld" id="wn" placeholder="Upper body, trail walk"></label>
+      <label class="f"><span>Minutes</span><input class="fld" id="wm" type="number" inputmode="numeric" value="${r.minutes}"></label>
+    </div>
+    <div class="seg" id="wo"><button type="button" data-o="0" aria-pressed="true">Indoors</button><button type="button" data-o="1" aria-pressed="false">Outdoors</button></div>
+    <div class="btnrow"><button class="act sm" id="wadd">Add session</button></div></div>`);
+  let outdoor = false;
+  wf.querySelectorAll('#wo button').forEach(b => b.onclick = () => {
+    outdoor = b.dataset.o === '1';
+    wf.querySelectorAll('#wo button').forEach(x => x.setAttribute('aria-pressed', (x.dataset.o === '1') === outdoor));
+  });
+  wf.querySelector('#wadd').onclick = () => {
+    const mins = parseInt(wf.querySelector('#wm').value, 10);
+    if (!(mins > 0)) return toast('Enter the minutes.', false);
+    const arr = sessions(target).concat([{ name: wf.querySelector('#wn').value.trim(), minutes: mins, outdoor }]);
+    put(target, { sessions: arr }); save(); render(); toast('Session added.', false);
+  };
+  wk.appendChild(wf);
+  out.push(wk);
+
+  /* reading */
+  const books = state.books || [];
+  const rd = el(`<div class="card"><div class="head"><h2>Reading</h2>
+    <span class="meta">${pagesRead(target)} of ${r.pages} pages today</span></div></div>`);
+  if (!books.length) rd.appendChild(el(`<div class="set"><div class="h">Add the book you are reading and pages logged will track against it.</div></div>`));
+  books.forEach((b, i) => {
+    const pct = b.pages ? Math.min(100, Math.round(b.read / b.pages * 100)) : 0;
+    const row = el(`<div class="set"><div class="t">${esc(b.title)} ${b.read >= b.pages && b.pages ? '📚' : ''}</div>
+      <div class="h">${b.read} of ${b.pages} pages · ${pct}%</div>
+      <div class="prog">${Array.from({length:20},(_,k)=>`<span class="${k < Math.round(pct/5)?'on':''}"></span>`).join('')}</div>
+      <div class="btnrow"><button class="act sm ghost" data-a="rm">Remove book</button></div></div>`);
+    row.querySelector('[data-a="rm"]').onclick = () => {
+      const arr = books.slice(); arr.splice(i, 1); state.books = arr; booksDirty = true; save(); render();
+    };
+    rd.appendChild(row);
+  });
+  const rf = el(`<div class="set"><div class="t">Log pages</div>
+    <div class="grid2">
+      <label class="f"><span>Book</span><select class="fld" id="rb">
+        ${books.map((b, i) => `<option value="${i}">${esc(b.title)}</option>`).join('')}
+        <option value="-1">No book</option></select></label>
+      <label class="f"><span>Pages</span><input class="fld" id="rp" type="number" inputmode="numeric" value="${r.pages}"></label>
+    </div>
+    <div class="btnrow"><button class="act sm" id="radd">Log pages</button></div>
+    <div class="t" style="margin-top:16px">Add a book</div>
+    <div class="grid2">
+      <label class="f"><span>Title</span><input class="fld" id="bt" placeholder="Title"></label>
+      <label class="f"><span>Total pages</span><input class="fld" id="bp" type="number" inputmode="numeric" placeholder="240"></label>
+    </div>
+    <div class="btnrow"><button class="act sm ghost" id="badd">Add book</button></div></div>`);
+  rf.querySelector('#radd').onclick = () => {
+    const p = parseInt(rf.querySelector('#rp').value, 10);
+    if (!(p > 0)) return toast('Enter the pages.', false);
+    const bi = parseInt(rf.querySelector('#rb').value, 10);
+    const reads = (D(target).reads || []).concat([{ book: bi, pages: p }]);
+    put(target, { reads });
+    if (bi >= 0 && state.books[bi]) state.books[bi].read = (state.books[bi].read || 0) + p;
+    save(); render(); toast(`${p} pages logged.`, false);
+  };
+  rf.querySelector('#badd').onclick = () => {
+    const t2 = rf.querySelector('#bt').value.trim(), p = parseInt(rf.querySelector('#bp').value, 10);
+    if (!t2) return toast('Enter a title.', false);
+    state.books = (state.books || []).concat([{ title: t2, pages: p > 0 ? p : 0, read: 0 }]); booksDirty = true;
+    save(); render();
+  };
+  rd.appendChild(rf);
+  out.push(rd);
+
+  /* body */
+  out.push(bodyCard(target));
+  return out;
+}
+
+function bodyCard(date) {
+  const d = D(date), ms = d.meas || {};
+  const c = el(`<div class="card"><div class="head"><h2>Body and mood</h2>
+    <span class="meta">${d.weightKg ? d.weightKg + ' kg' : 'no entry'}</span></div>
+    <div class="set"><div class="t">Weight and measurements</div>
+      <div class="h">Log as often as you like. Weight also drives the water target when that setting is on.</div>
+      <div class="grid4">
+        <label class="f"><span>Weight kg</span><input class="fld" id="bw" type="number" inputmode="decimal" value="${d.weightKg||''}"></label>
+        <label class="f"><span>Waist cm</span><input class="fld" id="mw" type="number" inputmode="decimal" value="${ms.waist||''}"></label>
+        <label class="f"><span>Chest cm</span><input class="fld" id="mc" type="number" inputmode="decimal" value="${ms.chest||''}"></label>
+        <label class="f"><span>Hips cm</span><input class="fld" id="mh" type="number" inputmode="decimal" value="${ms.hips||''}"></label>
+      </div>
+      <div class="btnrow"><button class="act sm" id="sb">Save measurements</button></div></div>
+    <div class="set"><div class="t">Mood</div><div class="h">One tap. Mood shows up in the weekly review next to your adherence.</div>
+      <div class="seg" id="mo">${['1','2','3','4','5'].map(v => `<button type="button" data-v="${v}" aria-pressed="${String(d.mood||'')===v}">${['😞','🙁','😐','🙂','😄'][+v-1]}</button>`).join('')}</div></div></div>`);
+  c.querySelector('#sb').onclick = () => {
+    const w = parseFloat(c.querySelector('#bw').value);
+    const meas = { waist: +c.querySelector('#mw').value || undefined, chest: +c.querySelector('#mc').value || undefined, hips: +c.querySelector('#mh').value || undefined };
+    put(date, { weightKg: w > 0 ? w : undefined, meas });
+    if (w > 25 && w < 300) state.weightKg = Math.round(w * 10) / 10;
+    save(); render(); toast('Measurements saved.', false);
+  };
+  c.querySelectorAll('#mo button').forEach(b => b.onclick = () => { put(date, { mood: +b.dataset.v }); save(); render(); });
+  return c;
+}
+
+/* ---------- Progress tab ---------- */
+function pgProgress(t, n, fin) {
+  const out = [];
+  if (!state.name) { out.push(setupCard()); return out; }
+  out.push(calendarCard(t));
+  out.push(recordCard(n, fin));
+  out.push(weekCard());
+  out.push(photoCard(t));
+  out.push(badgeCard());
+  return out;
+}
+
+function calendarCard(t) {
+  if (!calMonth) calMonth = t.slice(0, 7);
+  const [Y, M] = calMonth.split('-').map(Number);
+  const first = new Date(Y, M-1, 1), start = (first.getDay() + 6) % 7;
+  const days = new Date(Y, M, 0).getDate();
+  const c = el(`<div class="card"><div class="head"><h2>Calendar</h2>
+    <span class="meta">${statsAll().perfect} perfect days</span></div>
+    <div class="cal"><div class="mnav"><button id="pv">‹</button>
+      <b>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</b><button id="nx">›</button></div>
+      <div class="wk hd">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}</div>
+      <div class="wk" id="grid"></div></div>
+    <div class="legend"><span><i style="background:var(--brand)"></i>Perfect</span>
+      <span><i style="background:var(--amber-soft);border:1px solid #EBD9B4"></i>Partial</span>
+      <span><i style="background:var(--red-soft);border:1px solid #F0D3CF"></i>Missed</span>
+      <span><i style="background:var(--card);border:1px solid var(--line)"></i>Outside the run</span></div></div>`);
+  const grid = c.querySelector('#grid');
+  for (let i = 0; i < start; i++) grid.appendChild(el(`<div class="cell out">0</div>`));
+  for (let day = 1; day <= days; day++) {
+    const ds = `${Y}-${String(M).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const inRun = state.runStart && between(state.runStart, ds) >= 0 && between(state.runStart, ds) < TOTAL;
+    const past = between(ds, cutoff()) > 0;
+    let cls = '';
+    if (inRun) {
+      const dn = countDone(ds);
+      cls = dn === tasks().length ? 'perfect' : (past ? (dn === 0 ? 'missed' : 'part') : (dn > 0 ? 'part' : ''));
+    }
+    const cell = el(`<div class="cell ${cls} ${ds === t ? 'today' : ''}" title="${inRun ? `Day ${between(state.runStart, ds)+1} · ${countDone(ds)}/${tasks().length}` : shortD(ds)}">${day}</div>`);
+    grid.appendChild(cell);
+  }
+  const shift = k => { const d = new Date(Y, M-1+k, 1); calMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; render(); };
+  c.querySelector('#pv').onclick = () => shift(-1);
+  c.querySelector('#nx').onclick = () => shift(1);
+  return c;
+}
+
+function recordCard(n, fin) {
+  const s = statsAll(), cur = state.runStart ? Math.min(n, TOTAL) : 0;
+  const rows = [['Day', cur], ['Streak', currentStreak()], ['Perfect', s.perfect], ['Restarts', s.resets],
+    ['Workout min', s.minutes], ['Outdoor', s.outdoor], ['Pages', s.pages], ['Photos', s.photoDays]];
+  const c = el(`<div class="card"><div class="head"><h2>Record</h2>
+    <span class="meta">${Math.max(state.longest||0, fin ? TOTAL : cur)} best run</span></div>
+    <div class="bars" id="bars"></div><div class="axis"><span>Day 1</span><span>Day 38</span><span>Day 75</span></div>
+    <div class="stats">${rows.map(r=>`<div class="stat"><div class="v">${r[1]}</div><div class="k">${r[0]}</div></div>`).join('')}</div></div>`);
+  const bars = c.querySelector('#bars'), of = tasks().length;
+  for (let i = 0; i < TOTAL; i++) {
+    const d = state.runStart ? addDays(state.runStart, i) : null;
+    const past = d ? between(d, cutoff()) > 0 : false, dn = d ? countDone(d) : 0;
+    const b = document.createElement('div');
+    b.className = 'bar' + (dn === of ? ' full' : dn > 0 ? '' : past ? ' miss' : ' empty');
+    b.innerHTML = `<i style="height:${dn === 0 ? 3 : Math.round(dn/of*100)}%"></i>`;
+    b.title = d ? `Day ${i+1} · ${shortD(d)} · ${dn}/${of}` : `Day ${i+1}`;
+    bars.appendChild(b);
+  }
+  return c;
+}
+
+function weekCard() {
+  const w = weekStats(), of = tasks().length;
+  const perfect = w.filter(x => x.done === of).length;
+  const avgP = Math.round(w.reduce((a,x)=>a+x.protein,0) / 7);
+  const mins = w.reduce((a,x)=>a+x.minutes,0);
+  const pages = w.reduce((a,x)=>a+x.pages,0);
+  const weights = w.filter(x => x.weight);
+  const moods = w.filter(x => x.mood);
+  const c = el(`<div class="card"><div class="head"><h2>This week</h2><span class="meta">Last 7 days</span></div>
+    <div class="stats">
+      <div class="stat"><div class="v">${perfect}/7</div><div class="k">Perfect</div></div>
+      <div class="stat"><div class="v">${mins}</div><div class="k">Workout min</div></div>
+      <div class="stat"><div class="v">${avgP}</div><div class="k">Avg protein g</div></div>
+      <div class="stat"><div class="v">${pages}</div><div class="k">Pages</div></div>
+    </div>
+    <div class="set"><div class="h">
+      ${weights.length >= 2 ? `Weight moved from ${weights[0].weight} to ${weights[weights.length-1].weight} kg. ` : 'Log weight twice in a week to see the trend. '}
+      ${moods.length ? `Average mood ${(moods.reduce((a,x)=>a+x.mood,0)/moods.length).toFixed(1)} out of 5.` : 'No mood entries this week.'}
+    </div>
+    ${reportBusy ? '<div class="h" style="margin-top:10px"><span class="spin"></span> Writing the review.</div>' : ''}
+    ${reportText ? `<div class="coach" style="padding:12px 0 0"><div class="bubble">${esc(reportText)}</div></div>` : ''}
+    <div class="btnrow"><button class="act sm ghost" id="rp">${reportText ? 'Rewrite the review' : 'Write a weekly review'}</button></div></div></div>`);
+  const b = c.querySelector('#rp');
+  b.disabled = reportBusy;
+  b.onclick = runReport;
+  return c;
+}
+
+function photoCard(t) {
+  const dates = Object.keys(photos).sort();
+  const c = el(`<div class="card"><div class="head"><h2>Photo timeline</h2>
+    <span class="meta">${dates.length} ${dates.length === 1 ? 'photo' : 'photos'}</span></div></div>`);
+  if (!dates.length) {
+    c.appendChild(el(`<div class="set"><div class="h">No photos yet. Photos are stored on this device only and never shared with your crew.</div>
+      <div class="btnrow"><button class="act sm" id="ad">Add today's photo</button></div></div>`));
+    c.querySelector('#ad').onclick = () => pickPhoto(t);
+    return c;
+  }
+  const strip = el(`<div class="strip"></div>`);
+  dates.forEach(d => {
+    const s = el(`<div class="shot ${cmp.includes(d) ? 'sel' : ''}"><img src="${photos[d]}" alt="Progress photo ${shortD(d)}"><b>${state.runStart && between(state.runStart, d) >= 0 ? 'D' + (between(state.runStart, d)+1) : shortD(d)}</b></div>`);
+    s.onclick = () => {
+      if (cmp.includes(d)) cmp = cmp.filter(x => x !== d);
+      else cmp = cmp.concat([d]).slice(-2);
+      render();
+    };
+    strip.appendChild(s);
+  });
+  c.appendChild(strip);
+  if (cmp.length === 2) {
+    const [a, b] = cmp.slice().sort();
+    const days = state.runStart ? [between(state.runStart, a)+1, between(state.runStart, b)+1] : [null, null];
+    c.appendChild(el(`<div class="compare">
+      <figure><img src="${photos[a]}" alt="Earlier photo"><figcaption>${days[0] ? 'Day ' + days[0] + ' · ' : ''}${shortD(a)}</figcaption></figure>
+      <figure><img src="${photos[b]}" alt="Later photo"><figcaption>${days[1] ? 'Day ' + days[1] + ' · ' : ''}${shortD(b)}</figcaption></figure></div>`));
+  }
+  const f = el(`<div class="set"><div class="h">${cmp.length === 2 ? 'Tap a thumbnail to change the pair.' : 'Tap two thumbnails to compare them side by side.'}</div>
+    <div class="btnrow"><button class="act sm" id="ad">${photos[t] ? "Replace today's photo" : "Add today's photo"}</button>
+    ${cmp.length ? '<button class="act sm ghost" id="cc">Clear selection</button>' : ''}</div></div>`);
+  f.querySelector('#ad').onclick = () => pickPhoto(t);
+  const cc = f.querySelector('#cc'); if (cc) cc.onclick = () => { cmp = []; render(); };
+  c.appendChild(f);
+  return c;
+}
+
+function badgeCard() {
+  const got = earned();
+  const c = el(`<div class="card"><div class="head"><h2>Badges</h2>
+    <span class="meta">${got.length} of ${BADGES.length}</span></div><div class="badges"></div></div>`);
+  const g = c.querySelector('.badges');
+  BADGES.forEach(b => g.appendChild(el(`<div class="badge ${got.includes(b.id) ? 'got' : ''}">
+    <div class="ic">${b.ic}</div><div class="bn">${b.n}</div><div class="bd">${b.d}</div></div>`)));
+  return c;
+}
+
+/* ---------- Crew ---------- */
+function pgCrew() {
+  const out = [];
+  if (!state.name) { out.push(setupCard()); return out; }
+
+  // Joining always available: create, join, or switch, whatever the current state.
+  const joiner = el(`<div class="card"><div class="head"><h2>${state.crew ? 'Join a different crew' : 'Join or create a crew'}</h2>
+    <span class="meta">${cloudOn() ? 'Signed in' : 'Not signed in'}</span></div>
+    <div class="set">
+      <div class="h">${cloudOn()
+        ? 'Enter a code someone shared with you, or start your own. Joining a new crew leaves the old one.'
+        : 'A crew needs a Supabase account on both sides. Enter a code now and it is applied the moment you sign in under Settings, Cloud sync.'}
+        ${state.pendingCrew ? `<br><br>Code ${esc(state.pendingCrew)} is waiting for you to sign in.` : ''}</div>
+      <input class="fld code" id="cd" placeholder="CODE" maxlength="5" autocomplete="off" value="${esc(state.pendingCrew || '')}">
+      <div class="btnrow"><button class="act" id="j">Join with code</button>
+      <button class="act ghost" id="c">Create a crew</button></div>
+    </div></div>`);
+  joiner.querySelector('#j').onclick = async () => { if (await joinCrew(joiner.querySelector('#cd').value)) render(); else render(); };
+  joiner.querySelector('#c').onclick = async () => { if (await createCrew()) render(); };
+
+  if (!state.crew) {
+    out.push(el(`<div class="card"><div class="head"><h2>No crew yet</h2></div>
+      <div class="notice"><h3>Accountability works better in threes</h3>
+      <p>Everyone in a crew sees each other's day count and which checks are still open today. Photos, weight, measurements, and fuel never leave your own rows.</p></div></div>`));
+    out.push(joiner);
+    return out;
+  }
+
+  const inv = el(`<div class="card"><div class="head"><h2>Your crew</h2><button class="pill" id="rf">Refresh</button></div>
+    <div class="set"><div class="h">Share this code with the people you want holding you to it. They enter it under Crew, after signing in.</div>
+    <div class="codebox"><b>${esc(state.crew)}</b><button class="act ghost sm" id="cp" style="margin:0">Copy</button></div>
+    ${cloudOn() ? '' : '<div class="h" style="color:var(--red);margin-top:10px">Not signed in, so this crew exists only on this device. Connect under Settings, Cloud sync to make it real.</div>'}</div></div>`);
+  inv.querySelector('#rf').onclick = async () => { await loadCrew(); render(); toast('Crew refreshed.', false); };
+  inv.querySelector('#cp').onclick = async () => {
+    try { await navigator.clipboard.writeText(state.crew); toast('Code copied.', false); }
+    catch (e) { toast(`Code is ${state.crew}.`, false); }
+  };
+  out.push(inv);
+
+  const board = el(`<div class="card"><div class="head"><h2>Standings</h2>
+    <span class="meta">${crew.length} ${crew.length === 1 ? 'member' : 'members'}</span></div></div>`);
+  if (!crew.length) board.appendChild(el(`<div class="set"><div class="h">Nobody has checked in yet. A member appears here once they log their first check, so a brand new crew looks empty until then.</div></div>`));
+  crew.forEach(m => {
+    const me = cloudOn() ? m.uid === cloud.uid : slug(m.name) === slug(state.name);
+    const row = el(`<div class="mrow"><span class="av ${me ? 'me' : ''}">${esc(m.name.slice(0,1).toUpperCase())}</span>
+      <span class="who"><span class="nm">${esc(m.name.split(' ')[0])}${me ? ' <em>you</em>' : ''}
+        ${m.mode ? `<em>${esc(m.mode)}</em>` : ''}${m.broken ? '<em style="color:var(--red)">restarting</em>' : ''}</span>
+        <span class="dots">${(m.checks||[]).map(b => `<i class="${b?'on':''}"></i>`).join('')}</span></span>
+      <span class="day">${m.started ? String(m.day).padStart(2,'0') : '—'}<small>${m.done} of ${m.of||6}</small></span>
+      <button class="pill">View</button></div>`);
+    if (cloudOn() && m.uid) {
+      row.style.cursor = 'pointer';
+      row.querySelector('button').onclick = () => openMember(m.uid);
+      row.onclick = e => { if (e.target.tagName !== 'BUTTON') openMember(m.uid); };
+    } else {
+      row.querySelector('button').remove();
+    }
+    board.appendChild(row);
+  });
+  out.push(board);
+
+  const upd = crew.length ? Math.max(...crew.map(m => m.updated)) : null;
+  out.push(el(`<div class="card"><div class="set"><div class="t">What your crew can see</div>
+    <div class="h">First name, mode, day number, how many checks are done today, and whether you are restarting. Photos, weight, measurements, mood, and fuel stay in rows only you can read.${upd ? `<br><br>Last activity ${ago(upd)}.` : ''}</div></div></div>`));
+
+  if (cloudOn()) {
+    out.push(shareCard());
+    const fc = el(`<div class="card"><div class="head"><h2>Crew feed</h2>
+      <span class="meta">${feed.length} recent</span></div></div>`);
+    if (!feed.length) fc.appendChild(el(`<div class="set"><div class="h">Nothing shared yet. Anything posted above appears here for everyone in the crew.</div></div>`));
+    feed.slice(0, 12).forEach(p => {
+      const r = el(`<div class="set"><div class="t">${esc(p.name.split(' ')[0])} · ${esc(p.kind)}</div>
+        <div class="h">${esc(p.caption || '')}${p.caption ? ' · ' : ''}${ago(p.ts)}</div>
+        ${p.url ? `<img src="${p.url}" alt="Shared ${esc(p.kind)}" style="width:100%;border-radius:12px;margin-top:9px;display:block">` : ''}</div>`);
+      r.style.cursor = 'pointer';
+      r.onclick = () => openMember(p.uid);
+      fc.appendChild(r);
+    });
+    out.push(fc);
+  }
+
+  out.push(joiner);
+
+  const lv = el(`<div class="card"><div class="set"><div class="t">Leave crew ${esc(state.crew)}</div>
+    <div class="h">Removes you from the standings board. Your own log is untouched.</div>
+    <div class="btnrow"><button class="act sm danger" id="lv">Leave crew</button></div></div></div>`);
+  lv.querySelector('#lv').onclick = async () => { await leaveCrew(); toast('You left the crew.', false); };
+  out.push(lv);
+  return out;
+}
+
+/* ---------- Settings ---------- */
+function pgSettings() {
+  const out = [], r = R();
+
+  const modes = el(`<div class="card"><div class="head"><h2>Challenge mode</h2><span class="meta">${esc(r.name)}</span></div>
+    <div class="set"><div class="seg" id="md">${Object.keys(MODES).map(k => `<button type="button" data-m="${k}" aria-pressed="${state.mode===k}">${MODES[k].name}</button>`).join('')}</div>
+    <div class="h" style="margin-top:11px">75 Hard is the strict original: two 45 minute workouts with one outdoors, 3.8 litres, 10 pages of non-fiction, a daily photo, and no alcohol. 75 Soft relaxes it to one workout, 3 litres, any book, and social drinking. Changing mode changes how many checks a day needs.</div></div>
+    ${state.mode === 'custom' ? `<div class="set"><div class="t">Custom rules</div>
+      <div class="grid4">
+        <label class="f"><span>Sessions</span><input class="fld" id="cs" type="number" value="${r.sessions}"></label>
+        <label class="f"><span>Minutes each</span><input class="fld" id="cm" type="number" value="${r.minutes}"></label>
+        <label class="f"><span>Pages</span><input class="fld" id="cp" type="number" value="${r.pages}"></label>
+        <label class="f"><span>Water ml</span><input class="fld" id="cw" type="number" value="${r.water}"></label>
+      </div>
+      <div class="seg" id="cflags">
+        <button type="button" data-k="outdoor" aria-pressed="${!!r.outdoor}">Require outdoors</button>
+        <button type="button" data-k="photo" aria-pressed="${!!r.photo}">Require photo</button>
+        <button type="button" data-k="fiction" aria-pressed="${!!r.fiction}">Allow fiction</button>
+        <button type="button" data-k="alcohol" aria-pressed="${!!r.alcohol}">Allow alcohol</button>
+      </div>
+      <div class="btnrow"><button class="act sm" id="csave">Save rules</button></div></div>` : ''}</div>`);
+  modes.querySelectorAll('#md button').forEach(b => b.onclick = () => { state.mode = b.dataset.m; if (b.dataset.m === 'custom' && !state.rules) state.rules = Object.assign({}, MODES.custom); save(); render(); });
+  const cs = modes.querySelector('#csave');
+  if (cs) {
+    const flags = Object.assign({}, state.rules);
+    modes.querySelectorAll('#cflags button').forEach(b => b.onclick = () => {
+      flags[b.dataset.k] = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', flags[b.dataset.k]);
+    });
+    cs.onclick = () => {
+      state.rules = Object.assign({}, MODES.custom, flags, {
+        sessions: Math.max(1, +modes.querySelector('#cs').value || 1),
+        minutes: Math.max(5, +modes.querySelector('#cm').value || 30),
+        pages: Math.max(1, +modes.querySelector('#cp').value || 10),
+        water: Math.max(1000, +modes.querySelector('#cw').value || 3000)
+      });
+      save(); render(); toast('Rules saved.', false);
+    };
+  }
+  out.push(modes);
+
+  const water = el(`<div class="card"><div class="head"><h2>Water and fuel</h2><span class="meta">${(waterTarget()/1000).toFixed(2)} L</span></div>
+    <div class="set"><div class="t">Water target</div>
+      <div class="h">Rule keeps the mode's fixed figure. By body weight uses 40 ml per kilogram, capped between 2 and 5 litres, which is the common practical range for active adults. It is a scaling heuristic, not medical guidance.</div>
+      <div class="seg" id="wm">
+        <button type="button" data-w="rule" aria-pressed="${state.waterMode==='rule'}">Rule (${(r.water/1000).toFixed(1)} L)</button>
+        <button type="button" data-w="weight" aria-pressed="${state.waterMode==='weight'}">By body weight</button></div>
+      <div class="grid2"><label class="f"><span>Body weight kg</span><input class="fld" id="wt" type="number" inputmode="decimal" value="${state.weightKg||''}"></label></div>
+      <div class="btnrow"><button class="act sm" id="ws">Save weight</button></div></div>
+    <div class="set"><div class="t">Fuel targets</div><div class="h">Reference figures for the Log tab. They do not gate a day.</div>
+      <div class="grid2">
+        <label class="f"><span>Protein g</span><input class="fld" id="pt" type="number" value="${state.proteinTarget}"></label>
+        <label class="f"><span>Calories</span><input class="fld" id="ct" type="number" value="${state.calorieTarget}"></label>
+      </div><div class="btnrow"><button class="act sm" id="fs">Save targets</button></div></div></div>`);
+  water.querySelectorAll('#wm button').forEach(b => b.onclick = () => { state.waterMode = b.dataset.w; save(); render(); });
+  water.querySelector('#ws').onclick = () => {
+    const w = parseFloat(water.querySelector('#wt').value);
+    if (!(w > 25 && w < 300)) return toast('Enter a weight in kilograms.', false);
+    state.weightKg = Math.round(w * 10) / 10; save(); render(); toast('Weight saved.', false);
+  };
+  water.querySelector('#fs').onclick = () => {
+    state.proteinTarget = Math.max(20, +water.querySelector('#pt').value || 130);
+    state.calorieTarget = Math.max(800, +water.querySelector('#ct').value || 2000);
+    save(); render(); toast('Targets saved.', false);
+  };
+  out.push(water);
+
+  const misc = el(`<div class="card"><div class="head"><h2>App</h2></div>
+    <div class="set"><div class="t">Grace window</div>
+      <div class="h">How long past midnight a day stays editable. None enforces a hard cut-off.</div>
+      <div class="seg" id="gr">${[0,3,6,9].map(h=>`<button type="button" data-h="${h}" aria-pressed="${state.graceHours===h}">${h===0?'None':h+' hours'}</button>`).join('')}</div></div>
+    <div class="set"><div class="t">Display name</div>
+      <input class="fld" id="nm" value="${esc(state.name||'')}">
+      <div class="btnrow"><button class="act sm" id="ns">Save name</button>
+      ${state.crew ? '<button class="act sm ghost" id="lv">Leave crew</button>' : ''}</div></div>
+    <div class="set"><div class="t">Share my book list</div>
+      <div class="h">When on, your crew can see the books you are reading and how far along you are. Pages, workouts, weight, and photos are never shared by this.</div>
+      <div class="seg" id="sb">
+        <button type="button" data-v="1" aria-pressed="${state.shareBooks !== false}">Shared</button>
+        <button type="button" data-v="0" aria-pressed="${state.shareBooks === false}">Private</button></div></div>
+    <div class="set"><div class="t">Add to home screen</div>
+      <div class="h" id="ih">Installing gives the app its own icon and a full screen.</div>
+      <div class="btnrow"><button class="act sm" id="ib">Install app</button></div></div>
+    <div class="set"><div class="t">Start over at day 1</div>
+      <div class="h">Clears the current run and logs a restart. Six seconds to undo. Photos and books are kept.</div>
+      <div class="btnrow"><button class="act sm danger" id="rb">Start over</button></div></div></div>`);
+  misc.querySelectorAll('#gr button').forEach(b => b.onclick = () => { state.graceHours = +b.dataset.h; save(); render(); });
+  misc.querySelectorAll('#sb button').forEach(b => b.onclick = async () => {
+    state.shareBooks = b.dataset.v === '1';
+    await save();
+    if (cloudOn()) { try { await rest(`profiles?id=eq.${cloud.uid}`, { method: 'PATCH',
+      headers: { Prefer: 'return=minimal' }, body: { share_books: state.shareBooks } }); } catch (e) {} }
+    render();
+  });
+  misc.querySelector('#ns').onclick = async () => {
+    const v = misc.querySelector('#nm').value.trim();
+    if (!v) return toast('Name cannot be empty.', false);
+    if (!cloudOn() && state.crew && state.name) await S.del(mKey(state.crew, slug(state.name)), true);
+    state.name = v; await save(); await publish(); await loadCrew(); render(); toast('Name saved.', false);
+  };
+  const lv = misc.querySelector('#lv');
+  if (lv) lv.onclick = async () => { await leaveCrew(); toast('You left the crew.', false); };
+  misc.querySelector('#ib').onclick = () => {
+    if (installPrompt) { installPrompt.prompt(); installPrompt = null; return; }
+    misc.querySelector('#ih').textContent = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      ? 'On iPhone, tap Share in Safari, then Add to Home Screen.'
+      : 'Open the browser menu and choose Install app. This needs the app served from a real address rather than a preview frame.';
+  };
+  const rb = misc.querySelector('#rb');
+  rb.disabled = !state.runStart;
+  rb.onclick = () => resetRun(dayOf(today()));
+  out.push(cloudCard());
+  out.push(misc);
+  return out;
+}
+
+
+function cloudCard() {
+  const on = cloudOn();
+  const dot = { off: 'var(--line-2)', busy: 'var(--amber)', ok: 'var(--brand)', err: 'var(--red)' }[syncState] || 'var(--line-2)';
+  const c = el(`<div class="card"><div class="head"><h2>Cloud sync</h2>
+    <span class="meta"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dot};margin-right:6px"></span>${on ? esc(syncMsg || 'Connected') : 'This device only'}</span></div>
+    ${on ? `<div class="set"><div class="t">Signed in</div>
+      <div class="h">${esc(cloud.email)}<br>Your log, crew, and photos sync to Supabase and follow you to any device.</div>
+      <div class="btnrow"><button class="act sm ghost" id="rl">Reload from cloud</button>
+      <button class="act sm ghost" id="so">Sign out</button></div></div>`
+    : `<div class="set"><div class="t">Connect to Supabase</div>
+      <div class="h">The project is already connected. Create an account or sign in, and your log, crew, and photos follow you to any device.</div>
+      <details style="margin-top:11px"><summary style="font-size:12.5px;color:var(--muted);cursor:pointer">Project connection (already set)</summary>
+      <label class="f" style="margin-top:9px"><span>Project URL</span><input class="fld" id="u" value="${esc(cloud.url || '')}"></label>
+      <label class="f" style="margin-top:9px"><span>Anon public key</span><input class="fld" id="k" value="${esc(cloud.key || '')}"></label></details>
+      <div class="grid2">
+        <label class="f"><span>Email</span><input class="fld" id="e" type="email" autocomplete="username"></label>
+        <label class="f"><span>Password</span><input class="fld" id="p" type="password" autocomplete="current-password"></label>
+      </div>
+      <div class="btnrow"><button class="act sm" id="si">Sign in</button>
+      <button class="act sm ghost" id="su">Create account</button></div>
+      <div class="h" id="er" style="color:var(--red);margin-top:10px"></div></div>`}
+    </div>`);
+
+  if (on) {
+    c.querySelector('#rl').onclick = async () => { await pull(); await pullPhotos(); await loadCrew(); render(); };
+    c.querySelector('#so').onclick = async () => { await signOut(); render(); toast('Signed out. Your log stays on this device.', false); };
+    return c;
+  }
+  const go = async kind => {
+    const url = c.querySelector('#u').value.trim(), key = c.querySelector('#k').value.trim();
+    const email = c.querySelector('#e').value.trim(), pw = c.querySelector('#p').value;
+    const err = c.querySelector('#er');
+    if (!url || !key) { err.textContent = 'Project URL and anon key are both needed.'; return; }
+    if (!email || !pw) { err.textContent = 'Enter an email and password.'; return; }
+    err.textContent = '';
+    try {
+      await auth(kind, url, key, email, pw, state.name);
+      const local = JSON.parse(JSON.stringify(state));
+      await pull();
+      if (!state.runStart && local.runStart) {
+        state = Object.assign(state, local);
+        Object.keys(state.log).forEach(d => dirty.add(d));
+        booksDirty = true;
+        await push();
+        toast('Uploaded the run from this device.', false);
+      }
+      await pullPhotos(); await loadCrew(); render();
+    } catch (e) { err.textContent = e.message; }
+  };
+  c.querySelector('#si').onclick = () => go('in');
+  c.querySelector('#su').onclick = () => go('up');
+  return c;
+}
+
+/* ---------- wiring ---------- */
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = async () => {
+  tab = b.dataset.tab;
+  viewUid = null; memberData = null;
+  if (tab === 'crew') { await loadCrew(); await loadFeed(null); }
+  if (tab === 'inbox') await loadInbox();
+  render();
+});
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
+setInterval(async () => {
+  if (!state.crew) return;
+  await loadCrew(); await loadInbox();
+  if (tab === 'crew' || tab === 'inbox' || inboxUnread) render();
+}, 25000);
+
+(async () => {
+  await loadCloudCfg();
+  await load();
+  await loadPhotos();
+  render();
+  if (cloudOn()) { await pull(); await pullPhotos(); }
+  await loadCrew();
+  await loadInbox();
+  await loadFeed(null);
+  await publish();
+  render();
+})();
+</script>
