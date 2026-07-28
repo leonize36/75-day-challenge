@@ -1,0 +1,127 @@
+-- ============================================================
+-- PATCH 001 — crew creation and joining
+-- Run this whole file in the Supabase SQL editor.
+-- It is safe to run on top of the original schema.
+--
+-- Why this is needed:
+-- INSERT ... RETURNING requires a SELECT policy on the table.
+-- The only SELECT policy on crews was "you may read a crew you
+-- belong to", which is false at the moment you create one. The
+-- insert therefore failed and no crew row was ever written.
+-- Creation and joining now both go through security-definer
+-- functions, so the client never needs direct table rights.
+-- ============================================================
+
+-- ---------- 1. let a creator read their own crew ----------
+drop policy if exists "reaad crews i created" on public.crews;
+create policy "read crews i created" on public.crews
+  for select using (created_by = auth.uid());
+
+-- ---------- 2. create a crew and join it in one call ----------
+create or replace function public.create_crew(crew_name text default null)
+returns table (crew_id uuid, crew_code text)
+language plpgsql security definer set search_path = public as $$
+declare
+  new_code text;
+  new_id   uuid;
+  tries    int := 0;
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in';
+  end if;
+
+  loop
+    tries := tries + 1;
+    -- 5 characters, no ambiguous glyphs (no I, O, 0, 1)
+    new_code := (
+      select string_agg(substr('ABCDEFGHJKLMNPQRSTUVWXYZ23456789',
+                               (floor(random() * 32) + 1)::int, 1), '')
+      from generate_series(1, 5)
+    );
+    exit when not exists (select 1 from public.crews c where c.code = new_code);
+    if tries > 20 then raise exception 'Could not allocate a crew code'; end if;
+  end loop;
+
+  insert into public.crews (code, name, created_by)
+  values (new_code, coalesce(crew_name, 'My crew'), auth.uid())
+  returning id into new_id;
+
+  insert into public.crew_members (crew_id, user_id)
+  values (new_id, auth.uid())
+  on conflict do nothing;
+
+  return query select new_id, new_code;
+end $$;
+
+grant execute on function public.create_crew(text) to authenticated;
+
+-- ---------- 3. join by code, returning the crew ----------
+-- The old version returned a bare uuid, so it is dropped first.
+drop function if exists public.join_crew(text);
+
+create or replace function public.join_crew(join_code text)
+returns table (crew_id uuid, crew_code text)
+language plpgsql security definer set search_path = public as $$
+declare
+  cid  uuid;
+  ccode text;
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in';
+  end if;
+
+  ccode := upper(regexp_replace(coalesce(join_code, ''), '[^A-Za-z0-9]', '', 'g'));
+
+  if char_length(ccode) <> 5 then
+    raise exception 'A crew code is 5 characters';
+  end if;
+
+  select c.id into cid from public.crews c where c.code = ccode;
+
+  if cid is null then
+    raise exception 'No crew with code %', ccode;
+  end if;
+
+  -- A member can only belong to one crew at a time. Leaving the
+  -- old one keeps the standings board unambiguous.
+  delete from public.crew_status s where s.user_id = auth.uid() and s.crew_id <> cid;
+  delete from public.crew_members m where m.user_id = auth.uid() and m.crew_id <> cid;
+
+  insert into public.crew_members (crew_id, user_id)
+  values (cid, auth.uid())
+  on conflict do nothing;
+
+  return query select cid, ccode;
+end $$;
+
+grant execute on function public.join_crew(text) to authenticated;
+
+-- ---------- 4. one call to find the crew I am in ----------
+create or replace function public.my_crew()
+returns table (crew_id uuid, crew_code text, crew_name text, member_count int)
+language sql security definer stable set search_path = public as $$
+  select c.id, c.code, c.name,
+         (select count(*)::int from public.crew_members m2 where m2.crew_id = c.id)
+  from public.crew_members m
+  join public.crews c on c.id = m.crew_id
+  where m.user_id = auth.uid()
+  limit 1;
+$$;
+
+grant execute on function public.my_crew() to authenticated;
+
+-- ---------- 5. leave the crew cleanly ----------
+create or replace function public.leave_crew()
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  delete from public.crew_status where user_id = auth.uid();
+  delete from public.crew_members where user_id = auth.uid();
+end $$;
+
+grant execute on function public.leave_crew() to authenticated;
+
+-- ---------- 6. verify ----------
+-- Run these after the patch to confirm it works.
+--   select * from public.create_crew('Test crew');
+--   select * from public.my_crew();
+--   select * from public.crew_status;
